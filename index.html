@@ -316,6 +316,15 @@
     .result-info .agg { font-size: 12px; color: var(--text); background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.10); border-radius: 4px; padding: 8px 10px; line-height: 1.7; }
     .result-info .agg b { color: var(--accent); font-weight: 800; }
     .result-info .agg .sep { color: var(--muted); margin: 0 6px; }
+    /* ===== 広告バナー（PC・タブレット版 / スマホ版） ===== */
+    .ad-banner { display: flex; justify-content: center; align-items: center; margin: 0 0 16px; }
+    .ad-banner .ad-pc { display: block; }
+    .ad-banner .ad-sp { display: none; }
+    .ad-banner img { max-width: 100%; height: auto; border: 0; }
+    @media (max-width: 640px) {
+      .ad-banner .ad-pc { display: none; }
+      .ad-banner .ad-sp { display: block; }
+    }
   </style>
 </head>
 <body>
@@ -438,7 +447,7 @@
           </div>
         </div>
         <div class="sec hint">
-          このHTMLファイルは単体で動きます。PCに保存してダブルクリックするだけで開けます。
+          © アニメセレクト All Rights Reserved.
         </div>
       </aside>
       <button type="button" class="filter-fab" id="filterFab" aria-controls="sidebar" aria-expanded="false">
@@ -514,11 +523,26 @@
             </div>
           </div>
         </div>
+        <!-- ===== 広告バナー（赤枠位置：一覧の上部） ===== -->
+        <div class="ad-banner">
+          <!-- 〇PC版、タブレット版 -->
+          <div class="ad-pc">
+            <a href="https://px.a8.net/svt/ejp?a8mat=4BCDBN+CI4HE+4AHY+5Z6WX" rel="nofollow">
+<img border="0" width="468" height="60" alt="" src="https://www21.a8.net/svt/bgt?aid=260917619021&wid=001&eno=01&mid=s00000020023001004000&mc=1"></a>
+<img border="0" width="1" height="1" src="https://www19.a8.net/0.gif?a8mat=4BCDBN+CI4HE+4AHY+5Z6WX" alt="">
+          </div>
+          <!-- 〇スマホ版 -->
+          <div class="ad-sp">
+            <a href="https://px.a8.net/svt/ejp?a8mat=4BCDBN+CI4HE+4AHY+5ZEMP" rel="nofollow">
+<img border="0" width="320" height="50" alt="" src="https://www23.a8.net/svt/bgt?aid=260917619021&wid=001&eno=01&mid=s00000020023001005000&mc=1"></a>
+<img border="0" width="1" height="1" src="https://www11.a8.net/0.gif?a8mat=4BCDBN+CI4HE+4AHY+5ZEMP" alt="">
+          </div>
+        </div>
       </main>
     </div>
 
     <div class="footer">
-      <div class="footer-line1">作成元: アニメDB17.xlsx / (2026-09-14更新)</div>
+      <div class="footer-line1">更新日: 2026-09-17</div>
       <div class="footer-line2">
         <a class="footer-x" href="https://x.com/_anime_select" target="_blank" rel="noopener noreferrer" aria-label="X (旧Twitter) - @_anime_select" title="X (旧Twitter) @_anime_select">
           <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
@@ -1209,6 +1233,7 @@ applyFilters();
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925" integrity="sha512-d9sL6GJLXn6fInD1+TVXhTcQOsmxeHfmHAvwGDIxp5TO+uo1fiWW7mHomMj4MLRlCsJDTqXzWLHJFFlPCEIj/A==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79"}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925" integrity="sha512-d9sL6GJLXn6fInD1+TVXhTcQOsmxeHfmHAvwGDIxp5TO+uo1fiWW7mHomMj4MLRlCsJDTqXzWLHJFFlPCEIj/A==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79"}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925" integrity="sha512-d9sL6GJLXn6fInD1+TVXhTcQOsmxeHfmHAvwGDIxp5TO+uo1fiWW7mHomMj4MLRlCsJDTqXzWLHJFFlPCEIj/A==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79"}' crossorigin="anonymous"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
