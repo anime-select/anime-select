@@ -973,19 +973,27 @@ function render() {
   document.querySelectorAll('[data-page]').forEach(btn => btn.onclick = () => {
     state.page = Number(btn.dataset.page);
     render();
-    // ページ移動時は必ず移動先ページの先頭（画面上部）が表示されるようにする
-    // PC Chrome と モバイル Chrome（iOS / Android）の挙動差を吸収するため複合対策
+    // ページ移動時：移動先ページの「一番上の作品カード」が固定ヘッダーに隠れない位置へ移動する。
+    // 固定ヘッダーの高さは実行時に getStickyHeaderOffset() で測るので、端末差・文字サイズ差を吸収できる。
+    // 再描画直後は画像やレイアウトが動くため、二重 requestAnimationFrame ＋ 遅延で追従させる。
     const scrollTopAll = () => {
-      try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); } catch (e) {}
+      // 内部スクロールコンテナ（PCの .list-wrap）を先頭に戻す
+      document.querySelectorAll('.list-wrap').forEach(el => { try { el.scrollTop = 0; } catch (e) {} });
       try { document.documentElement.scrollTop = 0; } catch (e) {}
       try { document.body.scrollTop = 0; } catch (e) {}
-      // 内部にスクロールコンテナがあればそこも初期化
-      document.querySelectorAll('*').forEach(el => {
-        if (el === document.documentElement || el === document.body) return;
-        try { if (el.scrollTop) el.scrollTop = 0; } catch (e) {}
-      });
-      const anchor = document.querySelector('.content table') || document.querySelector('.content') || document.body;
-      try { anchor.scrollIntoView({ block: 'start', behavior: 'auto' }); } catch (e) {}
+      const listWrap = document.querySelector('.list-wrap');
+      const firstRow = listWrap ? listWrap.querySelector('tbody tr') : null;
+      const offset = getStickyHeaderOffset();
+      let target = 0;
+      if (window.matchMedia('(max-width: 640px)').matches && firstRow) {
+        // 先頭カードの絶対位置 − 固定ヘッダー高さ → 先頭カードがヘッダーのすぐ下に来る
+        target = Math.max(0, getDocTop(firstRow) - offset - 4);
+      } else {
+        const anchor = document.querySelector('.content table') || document.querySelector('.content') || document.body;
+        target = Math.max(0, getDocTop(anchor) - offset - 4);
+      }
+      try { window.scrollTo({ top: target, left: 0, behavior: 'auto' }); }
+      catch (e) { window.scrollTo(0, target); }
     };
     requestAnimationFrame(() => { scrollTopAll(); requestAnimationFrame(scrollTopAll); });
     setTimeout(scrollTopAll, 50);
@@ -1228,6 +1236,22 @@ function getDocTop(el) {
   let y = 0;
   while (el) { y += el.offsetTop; el = el.offsetParent; }
   return y;
+}
+// 画面上部に固定（sticky / fixed）されている要素の高さ合計を実行時に取得する。
+// スマホのヘッダー高さは端末や文字サイズで変わるため、px をハードコードしない。
+function getStickyHeaderOffset() {
+  let h = 0;
+  document.querySelectorAll('.list-header, .filter-toolbar, .toolbar').forEach(el => {
+    if (!el || !el.getClientRects().length) return;
+    const cs = window.getComputedStyle(el);
+    if (cs.position !== 'sticky' && cs.position !== 'fixed') return;
+    // すでに計上した固定要素の子孫は二重計上しない
+    if (!el.classList.contains('list-header') && el.closest('.list-header')) return;
+    // top:0 で貼り付く要素は、固定時の占有高さ＝要素自身の高さ。
+    // （現在スクロール量に依存しないので、スクロール位置を戻してから測っても正しく取れる）
+    h += el.getBoundingClientRect().height;
+  });
+  return h;
 }
 function scrollToListTop() {
   const isMobile = window.matchMedia('(max-width: 640px)').matches;
