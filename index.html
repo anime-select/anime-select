@@ -111,6 +111,7 @@
 
     /* === オーバーレイ式サイドバー（スマホ） === */
     .filter-fab { display: none; }
+    .mobile-bottom-bar { display: none; }
     .sidebar-backdrop { display: none; }
     .sidebar-close { display: none; }
 
@@ -193,11 +194,15 @@
 
       /* ① スマホ版一覧：添付画像の赤線（結果情報の下）より上の領域を画面上部に固定する。
          「↑上へ」ボタンを含むツールバーと結果情報をまとめて上部に貼り付く。 */
+      /* ➁-⑴ 下スクロール時、画面の上端は黄線（「504件ヒット / 全504件」のすぐ上）でストップ。
+         上部の固定領域は結果情報のみとし、その上に少し余白を持たせる。 */
       .list-header {
         position: sticky; top: 0; z-index: 20;
         background: rgba(21,24,29,.97);
         backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
         border-radius: 4px;
+        padding-top: 8px;
+        margin-top: -8px;
       }
       /* 上部フィルタツールバー（一覧画面用）：親の .list-header が貼り付くため static */
       .filter-toolbar {
@@ -218,6 +223,42 @@
         background: var(--panel-2); color: var(--text); border: 1px solid var(--line); font-size: 14px;
       }
       .filter-toolbar button { padding: 8px 12px; font-size: 13px; }
+
+      /* ① スマホ版：赤枠（〇件／並び順／↑上へ）と青枠（絞り込み）を一体化した下部固定バー。
+         並びは左から「↑上へ」→「並び順」→「絞り込み」。絞り込みボタンのデザインは維持。 */
+      .mobile-bottom-bar {
+        display: flex; align-items: center; gap: 6px; box-sizing: border-box;
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+        padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+        background: rgba(21,24,29,.97);
+        backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(255,255,255,.14);
+        box-shadow: 0 -8px 24px rgba(4,6,10,.45);
+        overflow: hidden;   /* 文字は必ず1行に収める（折り返し禁止） */
+      }
+      /* すべての要素を縮小し、4項目でも 1行 に収まるようにする */
+      .mobile-bottom-bar #ftScrollTop,
+      .mobile-bottom-bar #ftScrollBottom {
+        flex: 0 0 auto; white-space: nowrap; min-height: 40px;
+        padding: 8px 7px; font-size: 12px; line-height: 1;
+      }
+      .mobile-bottom-bar .sort { flex: 1 1 auto; min-width: 0; }
+      .mobile-bottom-bar select {
+        width: 100%; min-height: 40px; padding: 8px 4px; border-radius: 4px;
+        background: var(--panel-2); color: var(--text); border: 1px solid var(--line);
+        font-size: 12px; line-height: 1;
+      }
+      .mobile-bottom-bar .filter-fab {
+        position: static; right: auto; bottom: auto; flex: 0 0 auto; white-space: nowrap;
+        min-height: 40px; padding: 8px 8px; font-size: 12px; line-height: 1; gap: 4px;
+      }
+      .mobile-bottom-bar .filter-fab .badge { padding: 1px 6px; font-size: 11px; }
+
+      /* ➁-⑵ 最下部までスクロールした際、X（旧Twitter）のロゴが下部バーに隠れないよう、
+         「Xロゴ＋下部バー」の高さ分だけ余白を確保する。 */
+      body.has-bottom-bar {
+        padding-bottom: calc(var(--bottom-bar-h, 0px) + env(safe-area-inset-bottom, 0px) + 16px);
+      }
 
       /* 縦スクロール削減：テーブル横スクロール廃止＋カード化（コンパクト） */
       .list-wrap { overflow: visible !important; max-height: none !important; border: none !important; }
@@ -466,27 +507,10 @@
           © アニメセレクト All Rights Reserved.
         </div>
       </aside>
-      <button type="button" class="filter-fab" id="filterFab" aria-controls="sidebar" aria-expanded="false">
-        <span>🔍 絞り込み</span>
-        <span class="badge" id="filterFabBadge">504</span>
-      </button>
 
       <main class="panel content">
         <div id="listView">
         <div class="list-header" id="listHeader">
-        <div class="filter-toolbar">
-          <span class="count" id="ftCount">504件</span>
-          <div class="sort">
-            <select id="ftSort" aria-label="並び順">
-              <option value="year_desc">年が新しい順</option>
-              <option value="year_asc">年が古い順</option>
-              <option value="title_asc">作品名A→Z</option>
-              <option value="reading_asc">五十音順（読み）</option>
-              <option value="episodes_desc">話数が多い順</option>
-            </select>
-          </div>
-          <button type="button" class="secondary" id="ftScrollTop">↑ 上へ</button>
-        </div>
         <div class="toolbar">
           <div class="result" id="resultInfo">504件ヒット / 全504件</div>
           <div class="result" id="pageInfo">1 / 11ページ</div>
@@ -555,13 +579,32 @@
     </div>
 
     <div class="footer">
-      <div class="footer-line1">最終更新日: 2026-09-27・作品数 504件</div>
+      <div class="footer-line1">最終更新日: 2026-09-28・作品数 504件</div>
       <div class="footer-line2">
         <a class="footer-x" href="https://x.com/_anime_select" target="_blank" rel="noopener noreferrer" aria-label="X (旧Twitter) - @_anime_select" title="X (旧Twitter) @_anime_select">
           <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
         </a>
       </div>
     </div>
+  </div>
+
+  <!-- スマホ版：下部固定オーバーレイバー（↑上へ／並び順／絞り込み） -->
+  <div class="mobile-bottom-bar" id="mobileBottomBar">
+    <button type="button" class="secondary" id="ftScrollTop">↑ 上へ</button>
+    <button type="button" class="secondary" id="ftScrollBottom">↓ 下へ</button>
+    <div class="sort">
+      <select id="ftSort" aria-label="並び順">
+        <option value="year_desc">年が新しい順</option>
+        <option value="year_asc">年が古い順</option>
+        <option value="title_asc">作品名A→Z</option>
+        <option value="reading_asc">五十音順（読み）</option>
+        <option value="episodes_desc">話数が多い順</option>
+      </select>
+    </div>
+    <button type="button" class="filter-fab" id="filterFab" aria-controls="sidebar" aria-expanded="false">
+      <span>🔍 絞り込み</span>
+      <span class="badge" id="filterFabBadge">504</span>
+    </button>
   </div>
 
 <script>
@@ -1241,17 +1284,32 @@ function getDocTop(el) {
 // スマホのヘッダー高さは端末や文字サイズで変わるため、px をハードコードしない。
 function getStickyHeaderOffset() {
   let h = 0;
-  document.querySelectorAll('.list-header, .filter-toolbar, .toolbar').forEach(el => {
+  document.querySelectorAll('.list-header, .toolbar').forEach(el => {
     if (!el || !el.getClientRects().length) return;
     const cs = window.getComputedStyle(el);
     if (cs.position !== 'sticky' && cs.position !== 'fixed') return;
     // すでに計上した固定要素の子孫は二重計上しない
     if (!el.classList.contains('list-header') && el.closest('.list-header')) return;
-    // top:0 で貼り付く要素は、固定時の占有高さ＝要素自身の高さ。
-    // （現在スクロール量に依存しないので、スクロール位置を戻してから測っても正しく取れる）
+    // top:0 で貼り付く要素の占有高さ＝要素自身の高さ（スクロール位置に依存しないので、
+    // スクロールをリセットした直後に測っても正しい値になる）。
+    // 下端固定のバー（.mobile-bottom-bar）は selector に含めないため混入しない。
     h += el.getBoundingClientRect().height;
   });
   return h;
+}
+
+// 下部固定バーの実測高を CSS 変数へ渡し、最下部の余白（Xロゴの逃げ）を確保する
+function syncMobileBottomBar() {
+  const bar = document.getElementById('mobileBottomBar');
+  const isMobile = window.matchMedia('(max-width: 640px)').matches;
+  const root = document.documentElement;
+  if (!isMobile || !bar || !bar.getClientRects().length) {
+    root.style.setProperty('--bottom-bar-h', '0px');
+    document.body.classList.remove('has-bottom-bar');
+    return;
+  }
+  root.style.setProperty('--bottom-bar-h', Math.round(bar.getBoundingClientRect().height) + 'px');
+  document.body.classList.add('has-bottom-bar');
 }
 function scrollToListTop() {
   const isMobile = window.matchMedia('(max-width: 640px)').matches;
@@ -1278,7 +1336,21 @@ function scrollToListTop() {
   }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+// スマホ版「↓ 下へ」：画面の最下部まで移動する。
+// ②-⑵ の下余白により、最下部でも X（旧Twitter）のロゴが下部バーに隠れない。
+function scrollToListBottom() {
+  const target = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  try { window.scrollTo({ top: target, left: 0, behavior: 'smooth' }); }
+  catch (e) { window.scrollTo(0, target); }
+}
 $('ftScrollTop').onclick = scrollToListTop;
+$('ftScrollBottom').onclick = scrollToListBottom;
+syncMobileBottomBar();
+requestAnimationFrame(syncMobileBottomBar);
+setTimeout(syncMobileBottomBar, 300);
+window.addEventListener('load', syncMobileBottomBar);
+window.addEventListener('resize', syncMobileBottomBar);
+window.addEventListener('orientationchange', syncMobileBottomBar);
 $('perPage').onchange = applyFilters;
 ['statusFav','statusWatched','statusStopped','statusUnclassified'].forEach(id => { const el = $(id); if (el) el.onchange = applyFilters; });
 if ($('genre')) $('genre').onchange = applyFilters;
