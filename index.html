@@ -68,6 +68,8 @@
     tbody tr:hover { background: rgba(201,126,107,.07); }
     .title { font-weight: 800; }
     .title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    /* スマホ版一覧専用の「年/種別/話数」結合セル。PC・タブレットでは従来の3列をそのまま使う */
+    .list-wrap .cell-ymk { display: none; }
     .badge-recommend { background: rgba(201,126,107,.16); color: #E9C3B6; border-color: rgba(201,126,107,.42); }
     .sub { color: var(--muted); font-size: 12px; margin-top: 4px; }
     .badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(108,165,127,.16); color: #B7DCBF; border: 1px solid rgba(108,165,127,.42); border-radius: 4px; font-size: 12px; padding: 4px 8px; }
@@ -302,6 +304,26 @@
         width: fit-content; max-width: 100%;
       }
 
+      /* ①〜⑤ スマホ版一覧：【種別/話数/年】を1行にまとめる
+         例）TV  全13話  2026年   （ラベルは data-label で「種別/話数/年」）
+         ・結合セルだけを表示し、元の「年」「種別」「話数」の3行は非表示にする
+         ・1行に収めるため flex + nowrap、項目間はほどよく余白（gap）を空ける
+         ・種別のバッジは既存デザイン（.badge）を維持 */
+      .list-wrap .cell-ymk { display: grid; }
+      .list-wrap .cell-year,
+      .list-wrap .cell-kind,
+      .list-wrap .cell-episodes { display: none; }
+      .list-wrap .ymk {
+        display: flex; flex-direction: row; align-items: center;
+        flex-wrap: nowrap; gap: 14px; white-space: nowrap; min-width: 0;
+      }
+      .list-wrap .ymk .ymk-year,
+      .list-wrap .ymk .ymk-ep { white-space: nowrap; }
+      .list-wrap .ymk .badge {
+        justify-self: auto; align-self: center;
+        flex: 0 0 auto; width: fit-content; max-width: 100%;
+      }
+
       /* ② スマホ版タグ（一覧／詳細）の文字を図形の高さ中央に配置
          （chip の min-height:36px と inline-flex の stretch で文字が上寄りになるのを打ち消す） */
       .list-wrap .row-tag, .chips .row-tag, .chips .chip {
@@ -315,7 +337,8 @@
       .detail-card { gap: 10px; }
       .detail-head { gap: 6px; }
       .detail-title { font-size: 19px; line-height: 1.25; }
-      .detail-grid { grid-template-columns: 1.55fr 0.8fr 0.7fr 1fr !important; gap: 4px; }
+      /* 並び替え（種別/話数/上映時間/放送・公開年）に合わせ、各項目の列幅は元のまま維持 */
+      .detail-grid { grid-template-columns: 0.8fr 0.7fr 1fr 1.55fr !important; gap: 4px; }
       .detail-item { padding: 6px 4px; border-radius: 8px; text-align: center; }
       .detail-item .k { font-size: 8.5px; margin-bottom: 2px; line-height: 1.2; white-space: nowrap; }
       .detail-item .v { font-size: 11px; font-weight: 700; line-height: 1.25; word-break: break-word; }
@@ -521,9 +544,9 @@
             <thead>
               <tr>
                 <th style="min-width:280px;">作品</th>
-                <th>年</th>
                 <th>種別</th>
                 <th>話数</th>
+                <th>年</th>
                 <th style="min-width:120px;">原作</th>
                 <th style="min-width:170px;">制作会社</th>
                 <th style="min-width:120px;">監督</th>
@@ -972,6 +995,13 @@ function render() {
       const tagClass = tag.key === 'editor_pick' ? 'badge-recommend' : '';
       return `<span class="chip row-tag ${tagClass}">${escapeHtml(tag.label)}</span>`;
     }).join('');
+    // スマホ版一覧専用：種別・話数・年を1行にまとめたセル（PC/タブレットでは非表示）
+    // 並び順は「種別／話数／年」（例：TV　全13話　2026年）
+    const ymkParts = [];
+    if (r.kind) ymkParts.push(`<span class="badge">${escapeHtml(r.kind)}</span>`);
+    if (r.episodes && r.episodes !== '-') ymkParts.push(`<span class="ymk-ep">全${escapeHtml(r.episodes)}話</span>`);
+    if (r.year && r.year !== '-') ymkParts.push(`<span class="ymk-year">${escapeHtml(r.year)}年</span>`);
+    const ymkCell = `<td class="cell-ymk" data-label="種別/話数/年"><span class="ymk">${ymkParts.length ? ymkParts.join('') : '—'}</span></td>`;
     return `
       <tr>
         <td data-label="作品">
@@ -984,9 +1014,10 @@ function render() {
           </div>
           ${rowTags ? `<div class="chips row-tags">${rowTags}</div>` : ''}
         </td>
-        <td data-label="年">${escapeHtml(r.year || '—')}</td>
-        <td data-label="種別">${r.kind ? `<span class="badge">${escapeHtml(r.kind)}</span>` : '—'}</td>
-        <td data-label="話数">${escapeHtml(r.episodes || '—')}</td>
+        ${ymkCell}
+        <td class="cell-kind" data-label="種別">${r.kind ? `<span class="badge">${escapeHtml(r.kind)}</span>` : '—'}</td>
+        <td class="cell-episodes" data-label="話数">${escapeHtml(r.episodes || '—')}</td>
+        <td class="cell-year" data-label="年">${escapeHtml(r.year || '—')}</td>
         <td data-label="原作">${escapeHtml(r.original || '—')}</td>
         <td data-label="制作会社">${escapeHtml(companies || '—')}</td>
         <td data-label="監督">${escapeHtml([r.chief_director, r.director, r.assistant_director].filter(Boolean).join(' / ') || '—')}</td>
@@ -1161,10 +1192,10 @@ function showDetail(id) {
       </div>
       ${genres.length ? `<div class="genre-chips">${genres.map(g => `<span class="genre-chip">${escapeHtml(g)}</span>`).join('')}</div>` : ''}
       <div class="detail-grid">
-        <div class="detail-item"><div class="k">放送・公開年</div><div class="v">${escapeHtml(work.year || '—')}</div></div>
         <div class="detail-item"><div class="k">種別</div><div class="v">${escapeHtml(work.kind || '—')}</div></div>
         <div class="detail-item"><div class="k">話数</div><div class="v">${escapeHtml(work.episodes || '—')}</div></div>
         <div class="detail-item"><div class="k">上映時間</div><div class="v">${escapeHtml(work.runtime && work.runtime !== '-' ? work.runtime + '分' : '—')}</div></div>
+        <div class="detail-item"><div class="k">放送・公開年</div><div class="v">${escapeHtml(work.year || '—')}</div></div>
         <div class="detail-item" style="grid-column: span 2;"><div class="k">原作</div><div class="v">${escapeHtml(work.original || '—')}</div></div>
         <div class="detail-item" style="grid-column: span 2;"><div class="k">制作会社</div><div class="v">${escapeHtml(companies || '—')}</div></div>
         <div class="detail-item" style="grid-column: span 2;"><div class="k">監督</div><div class="v">${escapeHtml(directors || '—')}</div></div>
@@ -1406,6 +1437,7 @@ applyFilters();
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925" integrity="sha512-d9sL6GJLXn6fInD1+TVXhTcQOsmxeHfmHAvwGDIxp5TO+uo1fiWW7mHomMj4MLRlCsJDTqXzWLHJFFlPCEIj/A==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79"}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925" integrity="sha512-d9sL6GJLXn6fInD1+TVXhTcQOsmxeHfmHAvwGDIxp5TO+uo1fiWW7mHomMj4MLRlCsJDTqXzWLHJFFlPCEIj/A==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79"}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925" integrity="sha512-d9sL6GJLXn6fInD1+TVXhTcQOsmxeHfmHAvwGDIxp5TO+uo1fiWW7mHomMj4MLRlCsJDTqXzWLHJFFlPCEIj/A==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79"}' crossorigin="anonymous"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
