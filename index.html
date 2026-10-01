@@ -74,6 +74,9 @@
     .list-wrap .cell-tags { display: none; }
     /* スマホ版一覧専用：「種別」＋バッジの行（PC・タブレットでは上映時間の行 .sub をそのまま表示） */
     .list-wrap .meta-kind { display: none; }
+    /* ➒ スマホ版一覧専用：作品名の左に置く種別バッジ（PC・タブレットでは非表示） */
+    .list-wrap .title-badge { display: none; }
+    .list-wrap .cell-label { display: none; }
     .badge-recommend { background: rgba(201,126,107,.16); color: #E9C3B6; border-color: rgba(201,126,107,.42); }
     .sub { color: var(--muted); font-size: 12px; margin-top: 4px; }
     .badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(108,165,127,.16); color: #B7DCBF; border: 1px solid rgba(108,165,127,.42); border-radius: 4px; font-size: 12px; padding: 4px 8px; }
@@ -320,6 +323,31 @@
         justify-self: auto; align-self: center;
         flex: 0 0 auto; width: fit-content; max-width: 100%;
       }
+      /* ➂ スマホ版一覧：種別バッジを項目名「作品」の右隣（同じ行の値列）に置き、
+         作品名も同じ1行目から始まるようにする。
+         ・行内 flex のままだと、長い作品名の折り返しでバッジだけが次行に落ちるため grid にする
+         ・長い作品名はバッジの右側で折り返す（作品名は必ず1行目から始まる） */
+      /* ➒ スマホ版一覧：種別バッジを項目名「作品」の右隣に置く。
+         ・「作品」ラベルとバッジを .cell-head（flex）に入れ、ラベル列（72px）内で右隣に並べる
+         ・値列（2列目）の開始位置は他の行と同じので、作品名は1行目から始まる
+         ・72px に収めるため、バッジのフォントと余白を少し小さくする */
+      .list-wrap tbody td:first-child::before { content: none; }
+      .list-wrap tbody td:first-child .cell-head {
+        grid-area: 1 / 1 / 2 / 2;
+        display: flex; align-items: center; gap: 6px; min-width: 0;
+      }
+      .list-wrap tbody td:first-child .cell-label {
+        display: inline-block; font-size: 11px; font-weight: 700; color: var(--muted); white-space: nowrap;
+      }
+      .list-wrap tbody td:first-child .title-badge {
+        display: inline-flex; align-items: center; flex: 0 0 auto;
+        font-size: 10px; padding: 2px 5px; margin: 0;
+        width: fit-content; max-width: 100%; white-space: nowrap;
+      }
+      .list-wrap tbody td:first-child .title-row { grid-area: 1 / 2 / 2 / 3; display: block; }
+      .list-wrap tbody td:first-child .title { min-width: 0; }
+      /* ➒ 移動後の「視聴状況」行にはバッジを出さない（ステータスボタンのみ） */
+      .list-wrap .meta-kind .badge { display: none; }
       .list-wrap .work-actions { flex-wrap: nowrap; }
 
       /* ① スマホ版一覧の「種別」バッジを行右端まで伸ばさず、文字ぴったりの幅に収める
@@ -524,7 +552,7 @@
           </div>
         </div>
         <div class="sec">
-          <label class="label">ユーザー状態</label>
+          <label class="label">視聴状況</label>
           <div class="status-filter">
             <div class="status-checkboxes" id="statusCheckboxes">
               <label class="status-check"><input type="checkbox" id="statusFav" checked> 気になる</label>
@@ -1032,14 +1060,17 @@ function render() {
     // スマホでは「種別/話数/年」の下へ置くため、全幅セル .cell-tags にも出力してCSSで出し分ける。
     const tagsHtml = rowTags ? `<div class="chips row-tags">${rowTags}</div>` : '';
     const tagsCell = tagsHtml ? `<td class="cell-tags">${tagsHtml}</td>` : '';
+    // ➒ スマホ版一覧：種別バッジを作品名の左（赤枠位置）に出す（PC・タブレットはCSSで非表示）
+    const kindBadgeHtml = r.kind ? '<span class="badge title-badge">' + escapeHtml(r.kind) + '</span>' : '';
     return `
       <tr>
         <td data-label="作品">
+          <div class="cell-head"><span class="cell-label">作品</span>${kindBadgeHtml}</div>
           <div class="title-row"><div class="title">${escapeHtml(r.title || '—')}</div></div>
           <div class="sub">${r.runtime && r.runtime !== '-' ? '上映時間: ' + escapeHtml(r.runtime) + '分' : '上映時間: -'}</div>
           <!-- スマホ版一覧専用：上映時間の行の代わりに「種別」＋バッジを表示（PC・タブレットでは .sub を表示） -->
-          <div class="meta-kind"><span class="meta-label">種別</span>${r.kind ? `<span class="badge">${escapeHtml(r.kind)}</span>` : `<span class="meta-none">—</span>`}</div>
-          <div class="work-actions" aria-label="${escapeHtml(r.title || '作品')}のユーザー状態">
+          <div class="meta-kind"><span class="meta-label">視聴状況</span></div>
+          <div class="work-actions" aria-label="${escapeHtml(r.title || '作品')}の視聴状況">
             ${statusButton(r, 'fav')}
             ${statusButton(r, 'watched')}
             ${statusButton(r, 'stopped')}
@@ -1057,7 +1088,7 @@ function render() {
         <td data-label="シリーズ構成 / 脚本">${escapeHtml(writer || '—')}</td>
         <td data-label="キャラクターデザイン">${escapeHtml(r.character_design || '—')}</td>
         <td data-label="音楽">${escapeHtml(r.music || '—')}</td>
-        <td data-label="詳細"><button type="button" class="detail-btn" data-detail-id="${r.id}">詳細を開く</button></td>
+        <td data-label="詳細"><button type="button" class="detail-btn" data-detail-id="${r.id}">詳細に行く→</button></td>
       </tr>`;
   }).join('');
 
@@ -1216,7 +1247,7 @@ function showDetail(id) {
     <div class="detail-card">
       <div class="detail-head">
         <div class="detail-title">${escapeHtml(work.title || '—')}</div>
-        <div class="work-actions" aria-label="${escapeHtml(work.title || '作品')}のユーザー状態">
+        <div class="work-actions" aria-label="${escapeHtml(work.title || '作品')}の視聴状況">
           ${statusButton(work, 'fav')}
           ${statusButton(work, 'watched')}
           ${statusButton(work, 'stopped')}
@@ -1238,7 +1269,7 @@ function showDetail(id) {
         ${work.cast ? `<div class="detail-item" style="grid-column: 1 / -1;"><div class="k">出演</div><div class="v">${escapeHtml(work.cast)}</div></div>` : ''}
         ${work.keyword ? `<div class="detail-item" style="grid-column: 1 / -1;"><div class="k">キーワード</div><div class="v">${escapeHtml(work.keyword)}</div></div>` : ''}
       </div>
-      <div class="work-actions" aria-label="${escapeHtml(work.title || '作品')}のユーザー状態">
+      <div class="work-actions" aria-label="${escapeHtml(work.title || '作品')}の視聴状況">
         ${statusButton(work, 'fav')}
         ${statusButton(work, 'watched')}
         ${statusButton(work, 'stopped')}
@@ -1470,6 +1501,7 @@ applyFilters();
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925" integrity="sha512-d9sL6GJLXn6fInD1+TVXhTcQOsmxeHfmHAvwGDIxp5TO+uo1fiWW7mHomMj4MLRlCsJDTqXzWLHJFFlPCEIj/A==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79"}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925" integrity="sha512-d9sL6GJLXn6fInD1+TVXhTcQOsmxeHfmHAvwGDIxp5TO+uo1fiWW7mHomMj4MLRlCsJDTqXzWLHJFFlPCEIj/A==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79"}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925" integrity="sha512-d9sL6GJLXn6fInD1+TVXhTcQOsmxeHfmHAvwGDIxp5TO+uo1fiWW7mHomMj4MLRlCsJDTqXzWLHJFFlPCEIj/A==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79"}' crossorigin="anonymous"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
