@@ -96,6 +96,7 @@
     .tag-btn { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 4px; padding: 9px 12px; font-size: 13px; font-weight: 700; }
     .tag-btn.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); box-shadow: 0 4px 12px rgba(201,126,107,.28); }
     .tag-btn:hover { border-color: var(--accent); }
+    .tag-note { font-size: 11px; color: var(--muted); line-height: 1.7; margin: 10px 0 0; }
     .selected-tags { min-height: 18px; margin-top: 10px; }
     .selected-tags:empty { display: none; }
     .selected-tag { background: rgba(201,126,107,.13); border-color: rgba(201,126,107,.42); color: #E9C3B6; }
@@ -479,13 +480,17 @@
         <div class="sec">
           <label class="label" for="search">キーワード検索</label>
           <input class="input" id="search" list="suggestions" placeholder="作品名 / キーワード / 会社名 / 監督 / 音楽 など">
+          <div class="btns" style="margin-top:10px;">
+            <button class="primary js-apply" type="button">検索する</button>
+            <button class="secondary js-reset" type="button">リセット</button>
+          </div>
           <div class="hint" style="margin-top:8px;">スペース区切りでAND検索できます。「出演」「キーワード」も検索対象ですが、検索結果一覧には表示されません。</div>
           <datalist id="suggestions"><option value="ラブコメディ"></option><option value="学園"></option><option value="青春"></option><option value="SF"></option><option value="京都アニメーション"></option><option value="ファンタジー"></option><option value="アクション"></option><option value="コメディ"></option><option value="恋愛"></option><option value="花澤香菜"></option><option value="早見沙織"></option><option value="バトル"></option><option value="櫻井孝宏"></option><option value="ダークファンタジー"></option><option value="神谷浩史"></option><option value="茅野愛衣"></option><option value="堀江由衣"></option><option value="坂本真綾"></option><option value="花田十輝"></option><option value="音楽"></option></datalist>
         </div>
         <div class="sec">
           <label class="label">タグ絞り込み（複数選択可）</label>
           <div class="tag-filter" id="tagFilters"></div>
-          <div class="chips selected-tags" id="selectedTags"></div>
+          <p class="tag-note">※「〇クール完結」は、TVアニメのみでメインストーリーが全〇クールで終了していることを指します。原作が最後までアニメ化されていない作品も含まれます。</p>
         </div>
         <div class="sec grid2">
           <div>
@@ -827,11 +832,6 @@ function renderTagFilters() {
     return `<button type="button" class="tag-btn ${active}" data-tag="${tag.key}">${escapeHtml(tag.label)}</button>`;
   }).join('');
 
-  $('selectedTags').innerHTML = state.selectedTags.map(key => {
-    const found = TAG_DEFS.find(tag => tag.key === key);
-    return found ? `<span class="chip selected-tag">${escapeHtml(found.label)}</span>` : '';
-  }).join('');
-
   document.querySelectorAll('#tagFilters .tag-btn').forEach(btn => {
     btn.onclick = () => toggleTag(btn.dataset.tag);
   });
@@ -1065,7 +1065,7 @@ function render() {
     return `
       <tr>
         <td data-label="作品">
-          <div class="cell-head"><span class="cell-label">作品</span>${kindBadgeHtml}</div>
+          <div class="cell-head"><span class="cell-label">種別</span>${kindBadgeHtml}</div>
           <div class="title-row"><div class="title">${escapeHtml(r.title || '—')}</div></div>
           <div class="sub">${r.runtime && r.runtime !== '-' ? '上映時間: ' + escapeHtml(r.runtime) + '分' : '上映時間: -'}</div>
           <!-- スマホ版一覧専用：上映時間の行の代わりに「種別」＋バッジを表示（PC・タブレットでは .sub を表示） -->
@@ -1334,11 +1334,8 @@ fillFilters();
     if (e.key === 'Escape' && sidebar.classList.contains('is-open')) close();
   });
 
-  // サイドバー内の検索実行時は自動で閉じる（一覧を確認しやすくする）
-  const applyBtn = document.getElementById('apply');
-  if (applyBtn) applyBtn.addEventListener('click', () => { if (isNarrow()) setTimeout(close, 50); });
-  const resetBtn = document.getElementById('reset');
-  if (resetBtn) resetBtn.addEventListener('click', () => { if (isNarrow()) setTimeout(close, 50); });
+  // 検索・リセット実行時はサイドバーを開いたままにする（上下どちらのボタンでも閉じない）
+  // ※以前は下部ボタン(#apply / #reset)だけが自動クローズしていたため挙動が不一致だった。
 
   // PCに戻ったらオーバーレイを強制クローズ
   window.addEventListener('resize', () => {
@@ -1356,6 +1353,8 @@ function updateFilterFabBadge() {
 }
 $('apply').onclick = applyFilters;
 $('reset').onclick = resetFilters;
+document.querySelectorAll('.js-apply').forEach(btn => { btn.onclick = applyFilters; });
+document.querySelectorAll('.js-reset').forEach(btn => { btn.onclick = resetFilters; });
 ['search','company','director','music'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') applyFilters(); }));
 // 入力に応じてサジェストを上位20件に絞り込む
 $('search').addEventListener('input', () => renderSuggestions($('search').value));
