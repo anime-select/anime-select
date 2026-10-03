@@ -459,7 +459,27 @@
       .ad-banner .ad-pc { display: none; }
       .ad-banner .ad-sp { display: block; }
     }
-  </style>
+  
+/* === v11: 種別チェックボックス / 範囲入力（～） === */
+.kind-checks { display: flex; flex-wrap: nowrap; gap: 5px; }
+.kind-check {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  flex: 1 1 0; min-width: 0; white-space: nowrap;
+  font-size: 11px; font-weight: 600; line-height: 1;
+  padding: 6px 5px; cursor: pointer;
+  border: 1px solid var(--border, rgba(255,255,255,.14));
+  border-radius: 8px;
+  background: rgba(255,255,255,.03);
+  color: var(--fg, inherit);
+}
+.kind-check input { margin: 0; width: 12px; height: 12px; flex: 0 0 auto; accent-color: var(--accent, #e8927c); }
+.kind-check:has(input:checked) { border-color: var(--accent, #e8927c); background: rgba(232,146,124,.16); }
+.range-row { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: end; gap: 6px; }
+.range-row .range-cell { min-width: 0; }
+.range-row .range-sep { padding-bottom: 9px; font-size: 12px; line-height: 1; color: var(--muted, #9aa0a6); flex: 0 0 auto; }
+.range-row .input, .range-row .select { width: 100%; min-width: 0; box-sizing: border-box; }
+
+</style>
 </head>
 <body>
   <div class="wrap">
@@ -478,7 +498,7 @@
       <aside class="panel sidebar" id="sidebar" aria-hidden="true">
         <button type="button" class="sidebar-close" id="sidebarClose" aria-label="サイドバーを閉じる">×</button>
         <div class="sec">
-          <label class="label" for="search">キーワード検索</label>
+          <label class="label" for="search">フリーワード検索</label>
           <input class="input" id="search" list="suggestions" placeholder="作品名 / キーワード / 会社名 / 監督 / 音楽 など">
           <div class="btns" style="margin-top:10px;">
             <button class="primary js-apply" type="button">検索する</button>
@@ -492,28 +512,19 @@
           <div class="tag-filter" id="tagFilters"></div>
           <p class="tag-note">※「〇クール完結」は、TVアニメのみでメインストーリーが全〇クールで終了していることを指します。原作が最後までアニメ化されていない作品も含まれます。</p>
         </div>
-        <div class="sec grid2">
-          <div>
-            <label class="label" for="yearMin">開始年</label>
-            <select class="select" id="yearMin"></select>
-          </div>
-          <div>
-            <label class="label" for="yearMax">終了年</label>
-            <select class="select" id="yearMax"></select>
-          </div>
-        </div>
         <div class="sec">
-          <label class="label" for="kind">種別</label>
-          <select class="select" id="kind"></select>
+          <label class="label">種別</label>
+          <div class="kind-checks" id="kindChecks"></div>
         </div>
         <div class="sec">
           <label class="label">話数</label>
-          <div class="grid2">
-            <div>
+          <div class="range-row">
+            <div class="range-cell">
               <label class="label" for="episodesMin">最小話数</label>
               <input class="input" id="episodesMin" type="number" min="0" step="1" inputmode="numeric" placeholder="下限なし">
             </div>
-            <div>
+            <span class="range-sep" aria-hidden="true">～</span>
+            <div class="range-cell">
               <label class="label" for="episodesMax">最大話数</label>
               <input class="input" id="episodesMax" type="number" min="0" step="1" inputmode="numeric" placeholder="上限なし">
             </div>
@@ -521,16 +532,12 @@
           <div class="hint" style="margin-top:8px;">空欄は無制限。最小話数と最大話数の両方を指定できます。</div>
         </div>
         <div class="sec">
-          <label class="label" for="company">制作会社</label>
-          <input class="input" id="company" placeholder="例: サンライズ">
-        </div>
-        <div class="sec">
-          <label class="label" for="director">監督</label>
-          <input class="input" id="director" placeholder="例: 新房昭之">
-        </div>
-        <div class="sec">
-          <label class="label" for="music">音楽</label>
-          <input class="input" id="music" placeholder="例: 梶浦由記">
+          <label class="label">放送開始年・公開年</label>
+          <div class="range-row">
+            <div class="range-cell"><select class="select" id="yearMin" aria-label="放送開始年・公開年（開始）"></select></div>
+            <span class="range-sep" aria-hidden="true">～</span>
+            <div class="range-cell"><select class="select" id="yearMax" aria-label="放送開始年・公開年（終了）"></select></div>
+          </div>
         </div>
         <div class="sec">
           <label class="label" for="genre">ジャンル</label>
@@ -565,14 +572,26 @@
               <label class="status-check"><input type="checkbox" id="statusStopped" checked> 視聴止</label>
               <label class="status-check"><input type="checkbox" id="statusUnclassified" checked> 未分類</label>
             </div>
-            <button class="secondary" id="exportStatus" type="button">状態を保存</button>
-            <button class="secondary danger" id="clearStatus" type="button">状態を全消去</button>
+            <button class="secondary" id="exportStatus" type="button">視聴状況を保存</button>
+            <button class="secondary danger" id="clearStatus" type="button">視聴状況を全消去</button>
           </div>
           <div class="status-count" id="statusCount">気になる 0件 / 視聴済 0件 / 視聴止 0件</div>
         </div>
         <div class="sec btns">
           <button class="primary" id="apply">検索する</button>
           <button class="secondary" id="reset">リセット</button>
+        </div>
+        <div class="sec">
+          <label class="label" for="company">制作会社</label>
+          <input class="input" id="company" placeholder="例: サンライズ">
+        </div>
+        <div class="sec">
+          <label class="label" for="director">監督</label>
+          <input class="input" id="director" placeholder="例: 新房昭之">
+        </div>
+        <div class="sec">
+          <label class="label" for="music">音楽</label>
+          <input class="input" id="music" placeholder="例: 梶浦由記">
         </div>
         <div class="sec">
           <div class="label">よく使う例</div>
@@ -733,7 +752,7 @@ function renderSuggestions(query) {
   dl.innerHTML = top.map(v => `<option value="${escapeHtml(v)}"></option>`).join('');
 }
 
-const TAG_DEFS = [{"key": "editor_pick", "label": "編集者オススメ"}, {"key": "series_first", "label": "シリーズ1作目"}, {"key": "one_episode", "label": "1話完結型"}, {"key": "one_cour", "label": "1クール完結"}, {"key": "two_cour", "label": "2クール完結"}, {"key": "original_anime", "label": "オリジナルアニメ"}];
+const TAG_DEFS = [{"key": "editor_pick", "label": "編集者オススメ"}, {"key": "series_first", "label": "単発・第1作"}, {"key": "one_episode", "label": "1話完結型"}, {"key": "one_cour", "label": "1クール完結"}, {"key": "two_cour", "label": "2クール完結"}, {"key": "original_anime", "label": "オリジナルアニメ"}];
 
 const STATUS_STORAGE_KEY = 'animeUserState_v1';
 
@@ -841,7 +860,8 @@ function fillFilters() {
   const yearOptions = [...new Set(DATA.map(d => d.year).filter(Boolean))].sort((a,b)=>a-b);
   $('yearMin').innerHTML = '<option value="">指定なし</option>' + yearOptions.map(y => `<option value="${y}">${y}</option>`).join('');
   $('yearMax').innerHTML = '<option value="">指定なし</option>' + yearOptions.map(y => `<option value="${y}">${y}</option>`).join('');
-  $('kind').innerHTML = '<option value="">すべて</option>' + ORDERED_KINDS.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+  const kindBox = $('kindChecks');
+  if (kindBox) kindBox.innerHTML = ORDERED_KINDS.map(v => `<label class="kind-check"><input type="checkbox" class="kind-cb" value="${escapeHtml(v)}" checked> ${escapeHtml(v)}</label>`).join('');
   renderSuggestions('');
   const genreSet = [...new Set(DATA.flatMap(d => [d.genre1, d.genre2, d.genre3]).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),'ja'));
   $('genre').innerHTML = '<option value="">すべて</option>' + genreSet.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
@@ -855,7 +875,7 @@ function recText(r) {
     r.series_composition, r.script, r.character_design, r.music,
     r.genre1, r.genre2, r.genre3, r.reading, r.keyword, r.cast,
     r.editor_pick ? '編集者オススメ' : '',
-    r.series_first ? 'シリーズ1作目' : '',
+    r.series_first ? '単発・第1作' : '',
     r.one_episode ? '1話完結型' : '',
     r.one_cour ? '1クール完結' : '',
     r.two_cour ? '2クール完結' : '',
@@ -906,7 +926,9 @@ function applyFilters() {
     .filter(Boolean);
   const yearMin = $('yearMin').value;
   const yearMax = $('yearMax').value;
-  const kind = $('kind').value.trim().toLowerCase();
+  const kindBoxes = Array.from(document.querySelectorAll('#kindChecks .kind-cb'));
+  const kindSet = new Set(kindBoxes.filter(cb => cb.checked).map(cb => String(cb.value).trim().toLowerCase()));
+  const allKindsOff = kindBoxes.length > 0 && kindSet.size === 0;
   const genre = $('genre') ? $('genre').value.trim().toLowerCase() : '';
   const episodesMin = $('episodesMin').value.trim();
   const episodesMax = $('episodesMax').value.trim();
@@ -921,7 +943,7 @@ function applyFilters() {
   }
   $('yearMax').setCustomValidity('');
   if (yearMin !== '' && yearMax !== '' && Number(yearMin) > Number(yearMax)) {
-    $('yearMax').setCustomValidity('終了年は開始年以上にしてください。');
+    $('yearMax').setCustomValidity('「放送開始年・公開年」の終了は開始以降の年を指定してください。');
     $('yearMax').reportValidity();
     return;
   }
@@ -947,7 +969,8 @@ function applyFilters() {
     const yNum = Number(r.year);
     if (yearMin && yNum < Number(yearMin)) return false;
     if (yearMax && yNum > Number(yearMax)) return false;
-    if (kind && String(r.kind).toLowerCase() !== kind) return false;
+    if (allKindsOff) return false;
+    if (kindSet.size && !kindSet.has(String(r.kind).toLowerCase())) return false;
     if (!matchEpisodeRange(r.episodes, episodesMin, episodesMax)) return false;
     if (selectedTags.length && !selectedTags.every(tagKey => Boolean(r[tagKey]))) return false;
     if (company) {
@@ -1144,7 +1167,7 @@ function resetFilters() {
 renderSuggestions('');
   $('yearMin').value = '';
   $('yearMax').value = '';
-  $('kind').value = '';
+  document.querySelectorAll('#kindChecks .kind-cb').forEach(cb => { cb.checked = true; });
   if ($('genre')) $('genre').value = '';
   $('episodesMin').value = '';
   $('episodesMax').value = '';
@@ -1360,7 +1383,7 @@ document.querySelectorAll('.js-reset').forEach(btn => { btn.onclick = resetFilte
 $('search').addEventListener('input', () => renderSuggestions($('search').value));
 $('yearMin').onchange = applyFilters;
 $('yearMax').onchange = applyFilters;
-$('kind').onchange = applyFilters;
+document.querySelectorAll('#kindChecks .kind-cb').forEach(cb => { cb.onchange = applyFilters; });
 ['episodesMin','episodesMax'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') applyFilters(); }));
 $('episodesMin').onchange = applyFilters;
 $('episodesMax').onchange = applyFilters;
