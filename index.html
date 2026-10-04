@@ -460,24 +460,35 @@
       .ad-banner .ad-sp { display: block; }
     }
   
-/* === v11: 種別チェックボックス / 範囲入力（～） === */
+/* === v12: 種別チェックボックス / 範囲入力（～） / 詳細条件アコーディオン === */
 .kind-checks { display: flex; flex-wrap: nowrap; gap: 5px; }
 .kind-check {
   display: inline-flex; align-items: center; justify-content: center; gap: 4px;
   flex: 1 1 0; min-width: 0; white-space: nowrap;
-  font-size: 11px; font-weight: 600; line-height: 1;
-  padding: 6px 5px; cursor: pointer;
-  border: 1px solid var(--border, rgba(255,255,255,.14));
-  border-radius: 8px;
-  background: rgba(255,255,255,.03);
-  color: var(--fg, inherit);
+  font-size: 12px; font-weight: 700; line-height: 1;
+  min-height: 36px; padding: 0 6px; box-sizing: border-box; cursor: pointer;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel-2);
+  color: var(--text);
 }
-.kind-check input { margin: 0; width: 12px; height: 12px; flex: 0 0 auto; accent-color: var(--accent, #e8927c); }
+.kind-check input { margin: 0; width: 12px; height: 12px; flex: 0 0 auto; align-self: center; accent-color: var(--accent, #e8927c); }
 .kind-check:has(input:checked) { border-color: var(--accent, #e8927c); background: rgba(232,146,124,.16); }
-.range-row { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: end; gap: 6px; }
+.range-row { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: center; gap: 6px; }
 .range-row .range-cell { min-width: 0; }
-.range-row .range-sep { padding-bottom: 9px; font-size: 12px; line-height: 1; color: var(--muted, #9aa0a6); flex: 0 0 auto; }
+.range-row .range-sep { font-size: 12px; line-height: 1; color: var(--muted, #9aa0a6); flex: 0 0 auto; }
 .range-row .input, .range-row .select { width: 100%; min-width: 0; box-sizing: border-box; }
+.acc-toggle {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 12px; font-size: 13px; font-weight: 700; line-height: 1.2;
+  border-radius: 8px; border: 1px dashed var(--line);
+  background: rgba(255,255,255,.03); color: var(--text); cursor: pointer;
+}
+.acc-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.acc-toggle.is-open { border-style: solid; border-color: var(--accent); color: var(--accent); }
+.advanced-fields { margin-top: 18px; }
+.advanced-fields[hidden] { display: none !important; }
+@media (max-width: 640px) { .advanced-fields { margin-top: 12px; } }
 
 </style>
 </head>
@@ -499,7 +510,7 @@
         <button type="button" class="sidebar-close" id="sidebarClose" aria-label="サイドバーを閉じる">×</button>
         <div class="sec">
           <label class="label" for="search">フリーワード検索</label>
-          <input class="input" id="search" list="suggestions" placeholder="作品名 / キーワード / 会社名 / 監督 / 音楽 など">
+          <input class="input" id="search" list="suggestions" placeholder="作品名 / キーワード / 制作会社 / 監督 / 音楽 など">
           <div class="btns" style="margin-top:10px;">
             <button class="primary js-apply" type="button">検索する</button>
             <button class="secondary js-reset" type="button">リセット</button>
@@ -520,16 +531,13 @@
           <label class="label">話数</label>
           <div class="range-row">
             <div class="range-cell">
-              <label class="label" for="episodesMin">最小話数</label>
-              <input class="input" id="episodesMin" type="number" min="0" step="1" inputmode="numeric" placeholder="下限なし">
+              <input class="input" id="episodesMin" type="number" min="0" step="1" inputmode="numeric" placeholder="下限なし" aria-label="最小話数">
             </div>
             <span class="range-sep" aria-hidden="true">～</span>
             <div class="range-cell">
-              <label class="label" for="episodesMax">最大話数</label>
-              <input class="input" id="episodesMax" type="number" min="0" step="1" inputmode="numeric" placeholder="上限なし">
+              <input class="input" id="episodesMax" type="number" min="0" step="1" inputmode="numeric" placeholder="上限なし" aria-label="最大話数">
             </div>
           </div>
-          <div class="hint" style="margin-top:8px;">空欄は無制限。最小話数と最大話数の両方を指定できます。</div>
         </div>
         <div class="sec">
           <label class="label">放送開始年・公開年</label>
@@ -582,25 +590,47 @@
           <button class="secondary" id="reset">リセット</button>
         </div>
         <div class="sec">
-          <label class="label" for="company">制作会社</label>
-          <input class="input" id="company" placeholder="例: サンライズ">
+          <button class="acc-toggle" id="advToggle" type="button" aria-expanded="false" aria-controls="advancedFields">＋ 詳細条件を追加</button>
         </div>
-        <div class="sec">
-          <label class="label" for="director">監督</label>
-          <input class="input" id="director" placeholder="例: 新房昭之">
-        </div>
-        <div class="sec">
-          <label class="label" for="music">音楽</label>
-          <input class="input" id="music" placeholder="例: 梶浦由記">
-        </div>
-        <div class="sec">
-          <div class="label">よく使う例</div>
-          <div class="chips">
-            <button class="chip quick" data-q="京都アニメーション">京都アニメーション</button>
-            <button class="chip quick" data-q="シャフト">シャフト</button>
-            <button class="chip quick" data-q="新房昭之">新房昭之</button>
-            <button class="chip quick" data-q="梶浦由記">梶浦由記</button>
-            <button class="chip quick" data-q="花田十輝">花田十輝</button>
+        <div class="advanced-fields" id="advancedFields" hidden>
+          <div class="sec">
+            <label class="label" for="company">制作会社</label>
+            <input class="input" id="company" list="dl-company" placeholder="例: 京都アニメーション" autocomplete="off">
+            <datalist id="dl-company"></datalist>
+          </div>
+          <div class="sec">
+            <label class="label" for="director">監督</label>
+            <input class="input" id="director" list="dl-director" placeholder="例: 新房昭之" autocomplete="off">
+            <datalist id="dl-director"></datalist>
+          </div>
+          <div class="sec">
+            <label class="label" for="writer">シリーズ構成 / 脚本</label>
+            <input class="input" id="writer" list="dl-writer" placeholder="例: 花田十輝" autocomplete="off">
+            <datalist id="dl-writer"></datalist>
+          </div>
+          <div class="sec">
+            <label class="label" for="music">音楽</label>
+            <input class="input" id="music" list="dl-music" placeholder="例: 神前暁" autocomplete="off">
+            <datalist id="dl-music"></datalist>
+          </div>
+          <div class="sec">
+            <label class="label" for="cast">出演</label>
+            <input class="input" id="cast" list="dl-cast" placeholder="例: 花澤香菜" autocomplete="off">
+            <datalist id="dl-cast"></datalist>
+          </div>
+          <div class="sec btns">
+            <button class="primary js-apply" type="button">検索する</button>
+            <button class="secondary js-reset" type="button">リセット</button>
+          </div>
+          <div class="sec">
+            <div class="label">よく使う例</div>
+            <div class="chips">
+              <button class="chip quick" data-target="company" data-q="京都アニメーション">京都アニメーション</button>
+              <button class="chip quick" data-target="director" data-q="新房昭之">新房昭之</button>
+              <button class="chip quick" data-target="writer" data-q="花田十輝">花田十輝</button>
+              <button class="chip quick" data-target="music" data-q="神前暁">神前暁</button>
+              <button class="chip quick" data-target="cast" data-q="花澤香菜">花澤香菜</button>
+            </div>
           </div>
         </div>
         <div class="sec hint">
@@ -752,7 +782,56 @@ function renderSuggestions(query) {
   dl.innerHTML = top.map(v => `<option value="${escapeHtml(v)}"></option>`).join('');
 }
 
-const TAG_DEFS = [{"key": "editor_pick", "label": "編集者オススメ"}, {"key": "series_first", "label": "単発・第1作"}, {"key": "one_episode", "label": "1話完結型"}, {"key": "one_cour", "label": "1クール完結"}, {"key": "two_cour", "label": "2クール完結"}, {"key": "original_anime", "label": "オリジナルアニメ"}];
+// ==== 詳細条件フィールドごとのサジェスト（頻出上位5件） ====
+const FIELD_SUGGESTS = {
+  company:  { keys: ['company1', 'company2', 'company3'], split: false },
+  director: { keys: ['chief_director', 'director', 'assistant_director'], split: false },
+  writer:   { keys: ['series_composition', 'script'], split: true },
+  music:    { keys: ['music'], split: false },
+  cast:     { keys: ['cast'], split: true }
+};
+const FIELD_LIMIT = 5;
+const FIELD_POOLS = {};
+function buildFieldPools() {
+  const ids = Object.keys(FIELD_SUGGESTS);
+  const counts = {};
+  ids.forEach(id => { counts[id] = new Map(); });
+  for (const r of DATA) {
+    for (const id of ids) {
+      const cfg = FIELD_SUGGESTS[id];
+      const seen = new Set();
+      for (const k of cfg.keys) {
+        const v = r[k];
+        if (!v) continue;
+        if (cfg.split) { for (const t of splitSuggestTokens(v)) seen.add(t); }
+        else seen.add(String(v));
+      }
+      const m = counts[id];
+      for (const v of seen) m.set(v, (m.get(v) || 0) + 1);
+    }
+  }
+  for (const id of ids) {
+    const m = counts[id];
+    FIELD_POOLS[id] = Array.from(m.keys())
+      .sort((a, b) => (m.get(b) - m.get(a)) || (a < b ? -1 : a > b ? 1 : 0));
+  }
+}
+function renderFieldSuggestions(id, query) {
+  const dl = document.getElementById('dl-' + id);
+  if (!dl) return;
+  const pool = FIELD_POOLS[id] || [];
+  const q = normalizeKana(String(query ?? '').trim().toLowerCase());
+  const filtered = q ? pool.filter(v => normalizeKana(String(v).toLowerCase()).includes(q)) : pool;
+  dl.innerHTML = filtered.slice(0, FIELD_LIMIT).map(v => `<option value="${escapeHtml(v)}"></option>`).join('');
+}
+function renderAllFieldSuggestions() {
+  for (const id of Object.keys(FIELD_SUGGESTS)) {
+    const el = document.getElementById(id);
+    renderFieldSuggestions(id, el ? el.value : '');
+  }
+}
+
+const TAG_DEFS = [{"key": "editor_pick", "label": "編集者オススメ"}, {"key": "series_first", "label": "視聴スタート作"}, {"key": "one_episode", "label": "1話完結型"}, {"key": "one_cour", "label": "1クール完結"}, {"key": "two_cour", "label": "2クール完結"}, {"key": "original_anime", "label": "オリジナルアニメ"}];
 
 const STATUS_STORAGE_KEY = 'animeUserState_v1';
 
@@ -866,6 +945,8 @@ function fillFilters() {
   const genreSet = [...new Set(DATA.flatMap(d => [d.genre1, d.genre2, d.genre3]).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),'ja'));
   $('genre').innerHTML = '<option value="">すべて</option>' + genreSet.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
   renderTagFilters();
+  buildFieldPools();
+  renderAllFieldSuggestions();
 }
 
 function recText(r) {
@@ -875,7 +956,7 @@ function recText(r) {
     r.series_composition, r.script, r.character_design, r.music,
     r.genre1, r.genre2, r.genre3, r.reading, r.keyword, r.cast,
     r.editor_pick ? '編集者オススメ' : '',
-    r.series_first ? '単発・第1作' : '',
+    r.series_first ? '視聴スタート作' : '',
     r.one_episode ? '1話完結型' : '',
     r.one_cour ? '1クール完結' : '',
     r.two_cour ? '2クール完結' : '',
@@ -947,9 +1028,11 @@ function applyFilters() {
     $('yearMax').reportValidity();
     return;
   }
-  const company = $('company').value.trim().toLowerCase();
-  const director = $('director').value.trim().toLowerCase();
-  const music = $('music').value.trim().toLowerCase();
+  const company = $('company') ? $('company').value.trim().toLowerCase() : '';
+  const director = $('director') ? $('director').value.trim().toLowerCase() : '';
+  const writer = $('writer') ? $('writer').value.trim().toLowerCase() : '';
+  const music = $('music') ? $('music').value.trim().toLowerCase() : '';
+  const cast = $('cast') ? $('cast').value.trim().toLowerCase() : '';
   const sort = $('sort').value;
   const perPage = Number($('perPage').value);
   const selectedTags = state.selectedTags || [];
@@ -982,6 +1065,11 @@ function applyFilters() {
       if (!ds.includes(director)) return false;
     }
     if (music && !String(r.music).toLowerCase().includes(music)) return false;
+    if (writer) {
+      const ws = [r.series_composition, r.script].filter(Boolean).join(' ').toLowerCase();
+      if (!ws.includes(writer)) return false;
+    }
+    if (cast && !String(r.cast || '').toLowerCase().includes(cast)) return false;
     if (genre) {
       const genres = [r.genre1, r.genre2, r.genre3].filter(Boolean).join(' ').toLowerCase();
       if (!genres.includes(genre)) return false;
@@ -1163,7 +1251,8 @@ function render() {
 }
 
 function resetFilters() {
-  ['search','company','director','music'].forEach(id => $(id).value = '');
+  ['search','company','director','writer','music','cast'].forEach(id => { const el = $(id); if (el) el.value = ''; });
+  renderAllFieldSuggestions();
 renderSuggestions('');
   $('yearMin').value = '';
   $('yearMax').value = '';
@@ -1381,6 +1470,10 @@ document.querySelectorAll('.js-reset').forEach(btn => { btn.onclick = resetFilte
 ['search','company','director','music'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') applyFilters(); }));
 // 入力に応じてサジェストを上位20件に絞り込む
 $('search').addEventListener('input', () => renderSuggestions($('search').value));
+Object.keys(FIELD_SUGGESTS).forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', () => renderFieldSuggestions(id, el.value));
+});
 $('yearMin').onchange = applyFilters;
 $('yearMax').onchange = applyFilters;
 document.querySelectorAll('#kindChecks .kind-cb').forEach(cb => { cb.onchange = applyFilters; });
@@ -1513,7 +1606,41 @@ $('exportStatus').onclick = () => {
   link.click();
   URL.revokeObjectURL(url);
 };
-document.querySelectorAll('.quick').forEach(btn => btn.onclick = () => { $('search').value = btn.dataset.q; applyFilters(); });
+// よく使う例: それぞれの詳細条件フィールドへ入力する
+document.querySelectorAll('.quick').forEach(btn => btn.onclick = () => {
+  const target = btn.dataset.target;
+  const el = target ? document.getElementById(target) : null;
+  if (el) {
+    el.value = btn.dataset.q;
+    renderFieldSuggestions(target, '');
+  } else {
+    $('search').value = btn.dataset.q;
+  }
+  applyFilters();
+});
+
+// 詳細条件アコーディオン（初期は閉じている）
+(function setupAdvancedAccordion() {
+  const toggle = document.getElementById('advToggle');
+  const box = document.getElementById('advancedFields');
+  if (!toggle || !box) return;
+  const setOpen = (open) => {
+    if (open) {
+      box.removeAttribute('hidden');
+      toggle.textContent = '－ 詳細条件を閉じる';
+      toggle.setAttribute('aria-expanded', 'true');
+      toggle.classList.add('is-open');
+    } else {
+      box.setAttribute('hidden', '');
+      toggle.textContent = '＋ 詳細条件を追加';
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.classList.remove('is-open');
+    }
+  };
+  setOpen(false);
+  toggle.addEventListener('click', () => setOpen(box.hasAttribute('hidden')));
+})();
+
 applyFilters();
 </script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79"}' crossorigin="anonymous"></script>
