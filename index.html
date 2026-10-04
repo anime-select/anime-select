@@ -72,6 +72,7 @@
     .list-wrap .cell-ymk { display: none; }
     /* スマホ版一覧専用：タグを「話数/時間/年」の下に置くための全幅セル（PC・タブレットでは非表示） */
     .list-wrap .cell-tags { display: none; }
+    .list-wrap .cell-genres { display: none; }
     /* スマホ版一覧専用：「種別」＋バッジの行（PC・タブレットでは上映時間の行 .sub をそのまま表示） */
     .list-wrap .meta-kind { display: none; }
     /* ➒ スマホ版一覧専用：作品名の左に置く種別バッジ（PC・タブレットでは非表示） */
@@ -102,6 +103,16 @@
     .selected-tag { background: rgba(201,126,107,.13); border-color: rgba(201,126,107,.42); color: #E9C3B6; }
     .row-tags { margin-top: 8px; }
     .row-tag { padding: 5px 9px; font-size: 12px; }
+    /* === v19: タグを塗りつぶし配色に（アウトライン→面塗り／一覧カード・詳細画面 共通） === */
+    .row-tag { background: #39414E; border-color: #4C576A; color: #E7ECF3; }
+    /* 編集者オススメ等の強調タグも塗りつぶしで統一 */
+    .row-tag.badge-recommend { background: rgba(201,126,107,.30); border-color: rgba(201,126,107,.68); color: #F4D8CC; }
+    /* === v19: ジャンルバッジの配色（紫寄りの塗り／タグの塗りつぶしと色相で差別化） === */
+    .row-tag.genre-tag {
+      background: rgba(139,111,199,.34);
+      border-color: rgba(139,111,199,.78);
+      color: #DCCBFF;
+    }
     .work-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
     .status-btn { padding: 6px 9px; border-radius: 4px; background: var(--chip); color: var(--muted); border: 1px solid var(--line); font-size: 12px; font-weight: 700; }
     .status-btn:hover { border-color: var(--accent); color: var(--text); }
@@ -307,6 +318,9 @@
       .list-wrap tbody td:first-child .chips.row-tags { display: none; }
       .list-wrap .cell-tags { display: block; }
       .list-wrap .cell-tags::before { content: none; }
+      .list-wrap .cell-genres { display: block; }
+      .list-wrap .cell-genres::before { content: none; }
+      .list-wrap .cell-genres .genre-row-tags { margin-top: 4px; }
 
       /* ① スマホ版一覧：「上映時間」の行を「種別」＋バッジに置き換える
          ・ラベルのフォントは他のラベル（作品・原作など＝td::before）と揃える
@@ -445,7 +459,7 @@
     /* ⑤ ジャンルバッジ内の文字を図形の高さ中央に揃える（スマホ／タブレット／PC 共通）
        （".genre-chip" は span のため、半角英字のみの「SF」は行ボックス基準だと上寄りに見える。
          バッジ自体を inline-flex にして縦中央揃えにし、min-height で従来の高さを維持する） */
-    .genre-chip { background: rgba(201,126,107,.13); border: 1px solid rgba(201,126,107,.42); color: #E9C3B6; border-radius: 4px; padding: 6px 14px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; line-height: 1.2; min-height: 32px; }
+    .genre-chip { background: rgba(139,111,199,.24); border: 1px solid rgba(139,111,199,.62); color: #DCCBFF; border-radius: 4px; padding: 6px 14px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; line-height: 1.2; min-height: 32px; }
 
     .result-info { display: flex; flex-direction: column; gap: 6px; flex: 1 1 auto; min-width: 0; }
     .result-info .agg { font-size: 12px; color: var(--text); background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.10); border-radius: 4px; padding: 8px 10px; line-height: 1.7; }
@@ -490,6 +504,42 @@
 .advanced-fields { margin-top: 18px; }
 .advanced-fields[hidden] { display: none !important; }
 @media (max-width: 640px) { .advanced-fields { margin-top: 12px; } }
+
+/* === v16: スマホ版一覧の作品カード アコーディオン（PC・タブレットは非表示／無効） === */
+.card-acc-bar { display: none; }
+.card-acc-btn { display: none; }
+@media (max-width: 640px) {
+  /* ④⑤⑥ 一括開閉バー：sticky な .list-header の内側に置くことで常時表示される */
+  .card-acc-bar { display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; margin-top: 2px; margin-bottom: 0; }
+  /* ① バーの下に余白（作品カードと離す）／上はページ表示と近づける */
+  .list-header { padding-bottom: 16px; }
+  .list-header .toolbar { margin-bottom: 4px; }
+  .card-acc-bar button {
+    flex: 1 1 0; min-width: 0; padding: 8px 6px; min-height: 36px;
+    font-size: 12px; font-weight: 700; line-height: 1.1; white-space: nowrap;
+  }
+  /* ① 話数/時間/年 行の最右部に ＋/－ ボタン */
+  .list-wrap .cell-ymk { grid-template-columns: 72px minmax(0, 1fr) auto; align-items: center; }
+  .list-wrap .cell-ymk .ymk { grid-column: 2; }
+  .list-wrap .cell-ymk .card-acc-btn {
+    grid-column: 3; display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; min-width: 34px; padding: 0;
+    font-size: 16px; font-weight: 800; line-height: 1;
+    /* v18: 配色のみ微調整（面を少し明るく・枠を柔らかく／サイズ・余白は v17 のまま） */
+    border-radius: 8px; border: 1px solid #3D4653;
+    background: #262B33; color: #DDE1E8; cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .list-wrap .cell-ymk .card-acc-btn:hover {
+    border-color: rgba(201,126,107,.55); color: #E9C3B6; background: rgba(201,126,107,.10);
+  }
+  .list-wrap .cell-ymk .card-acc-btn[aria-expanded="true"] {
+    border-color: #C97E6B; color: #E9C3B6; background: rgba(201,126,107,.16);
+  }
+  /* ➁➂ 折りたたみ対象：原作〜音楽（初期状態は閉） */
+  .list-wrap tbody tr[data-acc-open="false"] td.acc-body-row { display: none; }
+  .list-wrap tbody tr[data-acc-open="true"] td.acc-body-row { display: grid; }
+}
 
 </style>
 </head>
@@ -645,6 +695,10 @@
         <div class="toolbar">
           <div class="result" id="resultInfo">504件ヒット / 全504件</div>
           <div class="result" id="pageInfo">1 / 11ページ</div>
+        </div>
+        <div class="card-acc-bar" id="cardAccBar">
+          <button class="secondary" id="accOpenAll" type="button">＋ 作品カードを全て開く</button>
+          <button class="secondary" id="accCloseAll" type="button">－ 作品カードを全て閉じる</button>
         </div>
         </div><!-- /list-header -->
         <div class="list-wrap" style="overflow:auto; max-height:70vh; border:1px solid rgba(255,255,255,.07); border-radius:16px;">
@@ -1129,6 +1183,7 @@ function aggregateText(rows) {
 }
 
 function render() {
+  if (!state.accOpen) state.accOpen = new Set();
   const perPage = state.perPage || 50;
   const total = state.filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / perPage));
@@ -1167,15 +1222,24 @@ function render() {
     const timeTxt = (r.runtime && r.runtime !== '-') ? `${escapeHtml(r.runtime)}分` : '-';
     let ymkText = `${epTxt} / ${timeTxt}`;
     if (r.year && r.year !== '-') ymkText += `\u3000${escapeHtml(r.year)}年`;
-    const ymkCell = `<td class="cell-ymk" data-label="話数/時間/年"><span class="ymk">${ymkText}</span></td>`;
+    const accOpen = state.accOpen.has(String(r.id));
+    const accBtn = `<button type="button" class="card-acc-btn" aria-expanded="${accOpen ? 'true' : 'false'}" aria-label="${accOpen ? '詳細を閉じる' : '詳細を開く'}">${accOpen ? '－' : '＋'}</button>`;
+    const ymkCell = `<td class="cell-ymk" data-label="話数/時間/年"><span class="ymk">${ymkText}</span>${accBtn}</td>`;
     // タグはPC/タブレットでは「作品」セル内（従来どおり）、
     // スマホでは「種別/話数/年」の下へ置くため、全幅セル .cell-tags にも出力してCSSで出し分ける。
     const tagsHtml = rowTags ? `<div class="chips row-tags">${rowTags}</div>` : '';
     const tagsCell = tagsHtml ? `<td class="cell-tags">${tagsHtml}</td>` : '';
+    // ➁➂ スマホ版一覧：タグの下にジャンルバッジ（項目名なし／PC・タブレットはCSSで非表示）
+    // アコーディオン（原作〜音楽）とは別セルのため、折りたたみ中も常に表示される
+    const genres = [r.genre1, r.genre2, r.genre3].filter(Boolean);
+    const genresHtml = genres.length
+      ? `<div class="chips row-tags genre-row-tags">${genres.map(g => `<span class="chip row-tag genre-tag">${escapeHtml(g)}</span>`).join('')}</div>`
+      : '';
+    const genresCell = genresHtml ? `<td class="cell-genres">${genresHtml}</td>` : '';
     // ➒ スマホ版一覧：種別バッジを作品名の左（赤枠位置）に出す（PC・タブレットはCSSで非表示）
     const kindBadgeHtml = r.kind ? '<span class="badge title-badge">' + escapeHtml(r.kind) + '</span>' : '';
     return `
-      <tr>
+      <tr data-work-id="${r.id}" data-acc-open="${accOpen ? 'true' : 'false'}">
         <td data-label="作品">
           <div class="cell-head"><span class="cell-label">種別</span>${kindBadgeHtml}</div>
           <div class="title-row"><div class="title">${escapeHtml(r.title || '—')}</div></div>
@@ -1191,15 +1255,16 @@ function render() {
         </td>
         ${ymkCell}
         ${tagsCell}
+        ${genresCell}
         <td class="cell-kind" data-label="種別">${r.kind ? `<span class="badge">${escapeHtml(r.kind)}</span>` : '—'}</td>
         <td class="cell-episodes" data-label="話数">${escapeHtml(r.episodes || '—')}</td>
         <td class="cell-year" data-label="年">${escapeHtml(r.year || '—')}</td>
-        <td data-label="原作">${escapeHtml(r.original || '—')}</td>
-        <td data-label="制作会社">${escapeHtml(companies || '—')}</td>
-        <td data-label="監督">${escapeHtml([r.chief_director, r.director, r.assistant_director].filter(Boolean).join(' / ') || '—')}</td>
-        <td data-label="シリーズ構成 / 脚本">${escapeHtml(writer || '—')}</td>
-        <td data-label="キャラクターデザイン">${escapeHtml(r.character_design || '—')}</td>
-        <td data-label="音楽">${escapeHtml(r.music || '—')}</td>
+        <td class="acc-body-row" data-label="原作">${escapeHtml(r.original || '—')}</td>
+        <td class="acc-body-row" data-label="制作会社">${escapeHtml(companies || '—')}</td>
+        <td class="acc-body-row" data-label="監督">${escapeHtml([r.chief_director, r.director, r.assistant_director].filter(Boolean).join(' / ') || '—')}</td>
+        <td class="acc-body-row" data-label="シリーズ構成 / 脚本">${escapeHtml(writer || '—')}</td>
+        <td class="acc-body-row" data-label="キャラクターデザイン">${escapeHtml(r.character_design || '—')}</td>
+        <td class="acc-body-row" data-label="音楽">${escapeHtml(r.music || '—')}</td>
         <td data-label="詳細"><button type="button" class="detail-btn" data-detail-id="${r.id}">詳細に行く→</button></td>
       </tr>`;
   }).join('');
@@ -1554,6 +1619,32 @@ function scrollToListBottom() {
   try { window.scrollTo({ top: target, left: 0, behavior: 'smooth' }); }
   catch (e) { window.scrollTo(0, target); }
 }
+// ⑧ 作品カードのアコーディオン状態を DOM へ反映する（アイコン・aria も同期）
+function applyCardAccState(tr, open) {
+  if (!tr) return;
+  tr.setAttribute('data-acc-open', open ? 'true' : 'false');
+  const btn = tr.querySelector('.card-acc-btn');
+  if (btn) {
+    btn.textContent = open ? '－' : '＋';
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    btn.setAttribute('aria-label', open ? '詳細を閉じる' : '詳細を開く');
+  }
+}
+// ④⑤ 「全て開く」「全て閉じる」：トグルではなく明示的に全カードを開／閉する
+function setAllCardAcc(open) {
+  if (!state.accOpen) state.accOpen = new Set();
+  const rows = document.querySelectorAll('#tbody tr');
+  rows.forEach(tr => applyCardAccState(tr, open));
+  // ページを跨いでも状態が揃うよう、現在の絞り込み結果すべてに反映する
+  if (open) {
+    state.filtered.forEach(r => state.accOpen.add(String(r.id)));
+  } else {
+    state.accOpen.clear();
+  }
+}
+$('accOpenAll').onclick = () => setAllCardAcc(true);
+$('accCloseAll').onclick = () => setAllCardAcc(false);
+
 $('ftScrollTop').onclick = scrollToListTop;
 $('ftScrollBottom').onclick = scrollToListBottom;
 syncMobileBottomBar();
@@ -1566,6 +1657,16 @@ $('perPage').onchange = applyFilters;
 ['statusFav','statusWatched','statusStopped','statusUnclassified'].forEach(id => { const el = $(id); if (el) el.onchange = applyFilters; });
 if ($('genre')) $('genre').onchange = applyFilters;
 $('tbody').addEventListener('click', event => {
+  const accBtn = event.target.closest('.card-acc-btn');
+  if (accBtn) {
+    const tr = accBtn.closest('tr');
+    if (!tr) return;
+    const open = tr.getAttribute('data-acc-open') !== 'true';
+    applyCardAccState(tr, open);
+    const id = tr.dataset.workId;
+    if (id) { if (open) state.accOpen.add(String(id)); else state.accOpen.delete(String(id)); }
+    return;
+  }
   const detailBtn = event.target.closest('[data-detail-id]');
   if (detailBtn) { showDetail(detailBtn.dataset.detailId); return; }
   const button = event.target.closest('[data-status-action]');
