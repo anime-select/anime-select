@@ -1098,6 +1098,11 @@
             <datalist id="dl-music"></datalist>
           </div>
           <div class="sec">
+            <label class="label" for="theme_song">主題歌</label>
+            <input class="input" id="theme_song" list="dl-theme_song" placeholder="例: ClariS" autocomplete="off">
+            <datalist id="dl-theme_song"></datalist>
+          </div>
+          <div class="sec">
             <label class="label" for="cast">出演</label>
             <input class="input" id="cast" list="dl-cast" placeholder="例: 花澤香菜" autocomplete="off">
             <datalist id="dl-cast"></datalist>
@@ -1113,6 +1118,7 @@
               <button class="chip quick" data-target="director" data-q="新房昭之">新房昭之</button>
               <button class="chip quick" data-target="writer" data-q="花田十輝">花田十輝</button>
               <button class="chip quick" data-target="music" data-q="神前暁">神前暁</button>
+              <button class="chip quick" data-target="theme_song" data-q="ClariS">ClariS</button>
               <button class="chip quick" data-target="cast" data-q="花澤香菜">花澤香菜</button>
             </div>
           </div>
@@ -1379,9 +1385,14 @@ const FIELD_SUGGESTS = {
   director: { keys: ['chief_director', 'director', 'assistant_director'], split: false },
   writer:   { keys: ['series_composition', 'script'], split: true },
   music:    { keys: ['music'], split: false },
+  theme_song: { keys: ['theme_song'], split: true },
   cast:     { keys: ['cast'], split: true }
 };
 const FIELD_LIMIT = 5;
+// 特定フィールドの先頭固定候補（主題歌は ClariS を一番上に固定表示）
+const FIELD_PINNED = { theme_song: 'ClariS' };
+// 先頭固定候補に続けて表示する「頻出上位」件数
+const FIELD_PINNED_REST = { theme_song: 4 };
 const FIELD_POOLS = {};
 function buildFieldPools() {
   const ids = Object.keys(FIELD_SUGGESTS);
@@ -1412,8 +1423,19 @@ function renderFieldSuggestions(id, query) {
   if (!dl) return;
   const pool = FIELD_POOLS[id] || [];
   const q = normalizeKana(String(query ?? '').trim().toLowerCase());
-  const filtered = q ? pool.filter(v => normalizeKana(String(v).toLowerCase()).includes(q)) : pool;
-  dl.innerHTML = filtered.slice(0, FIELD_LIMIT).map(v => `<option value="${escapeHtml(v)}"></option>`).join('');
+  const pin = FIELD_PINNED[id];
+  let values;
+  if (pin && !q) {
+    // 未入力時：先頭固定候補 → 頻出上位N件（重複は除外）
+    const rest = FIELD_PINNED_REST[id] != null ? FIELD_PINNED_REST[id] : FIELD_LIMIT - 1;
+    values = [pin].concat(pool.filter(v => v !== pin).slice(0, rest));
+  } else {
+    const filtered = q ? pool.filter(v => normalizeKana(String(v).toLowerCase()).includes(q)) : pool;
+    values = (pin && filtered.indexOf(pin) !== -1)
+      ? [pin].concat(filtered.filter(v => v !== pin).slice(0, FIELD_LIMIT - 1))
+      : filtered.slice(0, FIELD_LIMIT);
+  }
+  dl.innerHTML = values.map(v => `<option value="${escapeHtml(v)}"></option>`).join('');
 }
 function renderAllFieldSuggestions() {
   for (const id of Object.keys(FIELD_SUGGESTS)) {
@@ -1649,6 +1671,7 @@ function applyFilters() {
   const director = $('director') ? $('director').value.trim().toLowerCase() : '';
   const writer = $('writer') ? $('writer').value.trim().toLowerCase() : '';
   const music = $('music') ? $('music').value.trim().toLowerCase() : '';
+  const themeSong = $('theme_song') ? $('theme_song').value.trim().toLowerCase() : '';
   const cast = $('cast') ? $('cast').value.trim().toLowerCase() : '';
   const sort = $('sort').value;
   const perPage = Number($('perPage').value);
@@ -1682,6 +1705,7 @@ function applyFilters() {
       if (!ds.includes(director)) return false;
     }
     if (music && !String(r.music).toLowerCase().includes(music)) return false;
+    if (themeSong && !String(r.theme_song || '').toLowerCase().includes(themeSong)) return false;
     if (writer) {
       const ws = [r.series_composition, r.script].filter(Boolean).join(' ').toLowerCase();
       if (!ws.includes(writer)) return false;
@@ -1904,7 +1928,7 @@ function render() {
 }
 
 function resetFilters() {
-  ['search','company','director','writer','music','cast'].forEach(id => { const el = $(id); if (el) el.value = ''; });
+  ['search','company','director','writer','music','theme_song','cast'].forEach(id => { const el = $(id); if (el) el.value = ''; });
   renderAllFieldSuggestions();
   renderSuggestions('');
   $('yearMin').value = '';
@@ -2760,6 +2784,7 @@ else initComboWidgets();
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4bc70e2c01a94c73b74392e4234840661791215815920" integrity="sha512-L0ha0OXavK/8okipN9F8BtP84dg9DUhPERbBXzwI6dgTA55d2+yweo3pn5CSFYs45/r8md2+xvUPtTdvTNRfjA==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4bc70e2c01a94c73b74392e4234840661791215815920" integrity="sha512-L0ha0OXavK/8okipN9F8BtP84dg9DUhPERbBXzwI6dgTA55d2+yweo3pn5CSFYs45/r8md2+xvUPtTdvTNRfjA==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4bc70e2c01a94c73b74392e4234840661791215815920" integrity="sha512-L0ha0OXavK/8okipN9F8BtP84dg9DUhPERbBXzwI6dgTA55d2+yweo3pn5CSFYs45/r8md2+xvUPtTdvTNRfjA==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4bc70e2c01a94c73b74392e4234840661791215815920" integrity="sha512-L0ha0OXavK/8okipN9F8BtP84dg9DUhPERbBXzwI6dgTA55d2+yweo3pn5CSFYs45/r8md2+xvUPtTdvTNRfjA==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
