@@ -976,6 +976,73 @@
 #suggest-pop .sg-item.is-active, #suggest-pop .sg-item:hover,
 .field-suggest-pop .sg-item.is-active, .field-suggest-pop .sg-item:hover { background: #2a2a30; }
 #suggest-pop .sg-empty, .field-suggest-pop .sg-empty { padding: 10px 12px; color: #888; }
+
+    /* === フッター：プライバシーポリシー === */
+    .footer-policy { margin-top: 14px; display: flex; justify-content: center; }
+    .footer-policy-btn {
+      background: none; border: 0; padding: 4px 2px; margin: 0; cursor: pointer;
+      font-family: inherit; font-size: 12px; line-height: 1.6; color: var(--muted);
+      text-decoration: underline; text-underline-offset: 3px; border-radius: 4px;
+      transition: color .2s ease;
+    }
+    .footer-policy-btn:hover { color: var(--text); }
+    .footer-policy-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+    /* === プライバシーポリシー モーダル === */
+    body.is-modal-open { overflow: hidden; }
+    .policy-modal { position: fixed; inset: 0; z-index: 300; display: none; }
+    .policy-modal.is-open { display: block; }
+    .policy-modal__overlay {
+      position: absolute; inset: 0; background: rgba(4,6,10,.74);
+      backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+    }
+    .policy-modal__window {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+      width: min(720px, calc(100vw - 32px)); max-height: min(84vh, 760px);
+      display: flex; flex-direction: column; overflow: hidden;
+      background: var(--panel); color: var(--text);
+      border: 1px solid rgba(255,255,255,.16); border-radius: 6px;
+      box-shadow: 0 24px 64px rgba(4,6,10,.7);
+    }
+    .policy-modal__head {
+      position: relative; flex: 0 0 auto; padding: 18px 56px 14px 22px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+    }
+    .policy-modal__title {
+      margin: 0; font-size: 17px; font-weight: 700; line-height: 1.5;
+      letter-spacing: .04em; border-bottom: 2px double var(--accent); padding-bottom: 8px;
+    }
+    .policy-modal__close {
+      position: absolute; top: 10px; right: 10px;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 40px; height: 40px; min-width: 40px; padding: 0;
+      font-family: inherit; font-size: 18px; line-height: 1; cursor: pointer;
+      color: var(--text); background: var(--panel-2);
+      border: 1px solid var(--line); border-radius: 6px;
+      transition: border-color .15s ease, color .15s ease, background .15s ease;
+    }
+    .policy-modal__close:hover { border-color: var(--accent); color: var(--accent); background: rgba(201,126,107,.12); }
+    .policy-modal__close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .policy-modal__body {
+      flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch; padding: 20px 22px 24px;
+      font-size: 13.5px; line-height: 1.9; text-align: justify;
+    }
+    .policy-modal__body .policy-h {
+      margin: 22px 0 8px; font-size: 14.5px; font-weight: 700; line-height: 1.6; color: var(--text);
+    }
+    .policy-modal__body .policy-h:first-child { margin-top: 0; }
+    .policy-modal__body p { margin: 0 0 10px; }
+    .policy-modal__body .policy-list { margin: 0 0 10px; padding: 0; list-style: none; }
+    .policy-modal__body .policy-list li { margin: 0 0 6px; padding-left: 0; }
+    .policy-modal__body .policy-date { margin-top: 22px; color: var(--muted); font-size: 12.5px; }
+    @media (max-width: 640px) {
+      .policy-modal__window { width: calc(100vw - 20px); max-height: 86vh; }
+      .policy-modal__head { padding: 16px 52px 12px 16px; }
+      .policy-modal__title { font-size: 16px; }
+      .policy-modal__body { padding: 16px 16px 20px; font-size: 13px; line-height: 1.85; }
+    }
 </style>
 </head>
 <body>
@@ -1231,6 +1298,9 @@
           <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
         </a>
       </div>
+      <div class="footer-policy">
+        <button type="button" class="footer-policy-btn" id="policyOpen" aria-haspopup="dialog" aria-controls="policyModal">プライバシーポリシー</button>
+      </div>
     </div>
   </div>
 
@@ -1410,9 +1480,23 @@ const FIELD_SUGGESTS = {
 };
 const FIELD_LIMIT = 5;
 // 特定フィールドの先頭固定候補（主題歌は ClariS を一番上に固定表示）
-const FIELD_PINNED = { theme_song: 'ClariS' };
-// 先頭固定候補に続けて表示する「頻出上位」件数
-const FIELD_PINNED_REST = { theme_song: 4 };
+const FIELD_PINNED = {
+  company: '京都アニメーション',
+  director: '新房昭之',
+  writer: '花田十輝',
+  music: '神前暁',
+  theme_song: 'ClariS',
+  cast: '花澤香菜'
+};
+// 先頭固定候補に続けて表示する「頻出上位」件数（固定分と合わせて計5件）
+const FIELD_PINNED_REST = {
+  company: 4,
+  director: 4,
+  writer: 4,
+  music: 4,
+  theme_song: 4,
+  cast: 4
+};
 const FIELD_POOLS = {};
 function buildFieldPools() {
   const ids = Object.keys(FIELD_SUGGESTS);
@@ -2909,5 +2993,82 @@ else initComboWidgets();
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4bc70e2c01a94c73b74392e4234840661791215815920" integrity="sha512-L0ha0OXavK/8okipN9F8BtP84dg9DUhPERbBXzwI6dgTA55d2+yweo3pn5CSFYs45/r8md2+xvUPtTdvTNRfjA==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4bc70e2c01a94c73b74392e4234840661791215815920" integrity="sha512-L0ha0OXavK/8okipN9F8BtP84dg9DUhPERbBXzwI6dgTA55d2+yweo3pn5CSFYs45/r8md2+xvUPtTdvTNRfjA==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4bc70e2c01a94c73b74392e4234840661791215815920" integrity="sha512-L0ha0OXavK/8okipN9F8BtP84dg9DUhPERbBXzwI6dgTA55d2+yweo3pn5CSFYs45/r8md2+xvUPtTdvTNRfjA==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
+
+  <!-- プライバシーポリシー モーダル -->
+  <div class="policy-modal" id="policyModal" role="dialog" aria-modal="true" aria-labelledby="policyModalTitle" aria-hidden="true">
+    <div class="policy-modal__overlay" id="policyOverlay" aria-hidden="true"></div>
+    <div class="policy-modal__window" role="document">
+      <div class="policy-modal__head">
+        <h2 class="policy-modal__title" id="policyModalTitle">プライバシーポリシー</h2>
+        <button type="button" class="policy-modal__close" id="policyClose" aria-label="プライバシーポリシーを閉じる">✕</button>
+      </div>
+      <div class="policy-modal__body">
+        <h3 class="policy-h">1. 作品追加リクエスト・お問い合わせについて</h3>
+        <p>当サイトでは、掲載作品のリクエスト等のためにGoogleフォームを利用しています。</p>
+        <p>フォームよりご提出いただいた情報（作品名、補足情報、お名前・ニックネーム等）は、サイトのコンテンツ充実・改善および管理のためにのみ利用し、その他の目的で利用したり第三者に提供することはございません。</p>
+
+        <h3 class="policy-h">2. アクセス解析ツールについて</h3>
+        <p>当サイトでは、Googleによるアクセス解析ツール「Googleアナリティクス」を利用しています。Googleアナリティクスはトラフィックデータの収集のためにCookie（クッキー）を使用しています。</p>
+        <p>このトラフィックデータは匿名で収集されており、個人を特定するものではありません。この機能はCookieを無効にすることで収集を拒否することが出来ますので、お使いのブラウザの設定をご確認ください。</p>
+
+        <h3 class="policy-h">3. 広告の配信について</h3>
+        <p>当サイトは、第三者配信の広告サービス（A8.net等のアフィリエイトプログラム）を利用しています。</p>
+        <p>このような広告配信事業者は、ユーザーの興味に応じた商品やサービスの広告を表示するため、当サイトや他サイトへのアクセスに関する情報「Cookie」(氏名、住所、メール アドレス、電話番号は含まれません) を使用することがあります。</p>
+
+        <h3 class="policy-h">4. 免責事項</h3>
+        <ul class="policy-list">
+          <li>・当サイトからのリンクやバナーなどによって他のサイトに移動された場合、移動先サイトで提供される情報、サービス等について一切の責任を負いません。</li>
+          <li>・当サイトのコンテンツ・情報につきまして、可能な限り正確な情報を掲載するよう努めておりますが、誤情報が紛れ込んだり、情報が古くなっていることもございます。当サイトに掲載された内容によって生じた損害等の一切の責任を負いかねますのでご了承ください。</li>
+          <li>・当サイトに掲載している「画像検索」等の外部リンク先におけるコンテンツの著作権・肖像権等は、各権利所有者に帰属します。</li>
+        </ul>
+
+        <h3 class="policy-h">5. 著作権・肖像権について</h3>
+        <p>当サイトで掲載している文章や構造等につきましては、無断転載を禁止します。当サイトは著作権や肖像権の侵害を目的としたものではありません。著作権や肖像権に関して問題がございましたら、迅速に対応いたします。</p>
+
+        <p class="policy-date">【制定日】2026年10月17日</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  /* プライバシーポリシー モーダル：開閉（外側クリック／✕／Esc） */
+  (function setupPolicyModal() {
+    var modal = document.getElementById('policyModal');
+    var openBtn = document.getElementById('policyOpen');
+    var closeBtn = document.getElementById('policyClose');
+    var overlay = document.getElementById('policyOverlay');
+    var win = modal ? modal.querySelector('.policy-modal__window') : null;
+    if (!modal || !openBtn || !closeBtn || !overlay) return;
+    var lastFocus = null;
+
+    function openModal() {
+      lastFocus = document.activeElement;
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('is-modal-open');
+      closeBtn.focus();
+    }
+    function closeModal() {
+      if (!modal.classList.contains('is-open')) return;
+      modal.classList.remove('is-open');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('is-modal-open');
+      if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+    }
+
+    openBtn.addEventListener('click', function (e) { e.preventDefault(); openModal(); });
+    closeBtn.addEventListener('click', function (e) { e.preventDefault(); closeModal(); });
+    /* ウィンドウ領域の外側（オーバーレイ）をクリック／タップしたら閉じる */
+    overlay.addEventListener('click', closeModal);
+    modal.addEventListener('mousedown', function (e) { if (e.target === modal) closeModal(); });
+    /* ✕ 以外はウィンドウ内のクリックで閉じない */
+    if (win) { win.addEventListener('mousedown', function (e) { e.stopPropagation(); }); }
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' || e.key === 'Esc') closeModal();
+    });
+    window.__policyModal = { open: openModal, close: closeModal };
+  })();
+  </script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 </body></html>
