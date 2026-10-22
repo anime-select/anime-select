@@ -1138,6 +1138,34 @@
       .status-check { padding: 8px 5px; font-size: 11px; gap: 4px; justify-content: flex-start; }
       .status-check input { width: 15px; height: 15px; }
     }
+
+    /* ===== v35: スマホ・タブレット（縦長）一覧カード =====
+       ① 一覧の「種別」ラベルを廃止し、種別バッジと作品名を左端へ寄せる
+          （td:first-child の1列目を固定72px→バッジ幅の auto にし、バッジ直後から作品名を開始）
+       ② 作品名を1段階拡大（15px→16px）、種別バッジも1段階拡大（10px→11px）＋
+          バッジの高さを作品名のフォントサイズ相当（18px）にそろえ、中の文字は上下中央 */
+    @media (max-width: 640px), (min-width: 641px) and (max-width: 1024px) and (orientation: portrait) {
+      /* v36: バッジと作品名の間隔を広げ、バッジ中心线与=作品名1行目の中心線に合わせる */
+      .list-wrap tbody td:first-child { grid-template-columns: auto minmax(0, 1fr); align-items: center; }
+      .list-wrap tbody td:first-child .cell-label { display: none !important; }
+      .list-wrap tbody td:first-child .cell-head {
+        grid-area: 1 / 1 / 2 / 2;
+        display: flex; align-items: center; justify-content: flex-start;
+        gap: 0; min-width: 0; align-self: center;
+      }
+      .list-wrap tbody td:first-child .title-row {
+        grid-area: 1 / 2 / 2 / 3; justify-self: start; align-self: center;
+        padding-left: 6px;
+      }
+      /* v37: 種別バッジの高さを1段階拡大（18px→20px、文字 11px→12px、左右余白 7px→8px）
+         作品名1行目（16px×1.35＝約21.6px）の内側に収まるため、行の高さ・中心線・間隔は従来どおり */
+      .list-wrap tbody td:first-child .title-badge {
+        display: inline-flex; align-items: center; justify-content: center;
+        height: 20px; padding: 0 8px; font-size: 12px; line-height: 1;
+        text-align: center; vertical-align: middle;
+      }
+      .list-wrap tbody td:first-child .title { font-size: 16px; line-height: 1.35; }
+    }
 </style>
 </head>
 <body>
@@ -3190,5 +3218,6 @@ else initComboWidgets();
     window.__policyModal = { open: openModal, close: closeModal };
   })();
   </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 </body></html>
