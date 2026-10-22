@@ -133,14 +133,21 @@
       color: #DCCBFF;
     }
     .work-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-    .status-btn { padding: 6px 9px; border-radius: 4px; background: var(--chip); color: var(--muted); border: 1px solid var(--line); font-size: 12px; font-weight: 700; }
+    .status-btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 9px; border-radius: 4px; background: var(--chip); color: var(--muted); border: 1px solid var(--line); font-size: 12px; font-weight: 700; white-space: nowrap; }
+    /* 先頭記号。PC・タブレット横長の「視聴済」だけは円をCSSで描く（下のメディアクエリ） */
+    .status-btn .st-ic { display: inline-block; line-height: 1; flex: 0 0 auto; }
     .status-btn:hover { border-color: var(--accent); color: var(--text); }
     .status-btn.is-active { color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
     .status-btn.watched.is-active { background: var(--accent-2); border-color: var(--accent-2); color: var(--on-accent); }
     .status-btn.stopped.is-active { background: var(--danger); border-color: var(--danger); color: var(--on-danger); }
+    /* ② 視聴中 ON：黄色系（目に優しいマスタード） */
+    .status-btn.watching.is-active { background: #C0A253; border-color: #C0A253; color: #241C0B; }
+    .status-btn.watching.is-active:hover { background: #CDAF63; border-color: #CDAF63; color: #241C0B; }
     .status-filter { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .status-checkboxes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; grid-column: 1 / -1; }
-    .status-check { display: flex; align-items: center; gap: 8px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; font-size: 13px; font-weight: 700; color: var(--text); cursor: pointer; }
+    /* ⑦ 1行目：気になる／視聴中／視聴済、2行目：視聴止／未分類＋空き1マス */
+    .status-checkboxes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; grid-column: 1 / -1; }
+    .status-check-spacer { min-height: 1px; }
+    .status-check { display: flex; align-items: center; gap: 8px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; font-size: 13px; font-weight: 700; color: var(--text); cursor: pointer; min-width: 0; white-space: nowrap; }
     .status-check input { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
     .status-check:has(input:checked) { border-color: var(--accent); background: rgba(201,126,107,.09); }
     .status-count { font-size: 12px; color: var(--muted); margin-top: 8px; }
@@ -1079,6 +1086,58 @@
       .policy-modal__title { font-size: 16px; }
       .policy-modal__body { padding: 16px 16px 20px; font-size: 13px; line-height: 1.85; }
     }
+
+    /* ============================================================
+       v34: 視聴状況を4状態（気になる／視聴中／視聴済／視聴止）に拡張
+         ④ 一覧の「視聴状況」ラベル廃止
+         ⑤ 左詰め（スマホ・タブレット縦長）／右詰め（PC・タブレット横長）
+         ⑥ 詳細画面は左詰め・1行
+       ============================================================ */
+    .list-wrap .meta-kind { display: none !important; }
+
+    /* ⑤ スマホ・タブレット縦長：左詰め・1行 */
+    @media (max-width: 640px), (min-width: 641px) and (max-width: 1024px) and (orientation: portrait) {
+      .list-wrap tbody td:first-child > .work-actions {
+        grid-column: 1 / -1 !important;
+        display: flex; flex-wrap: nowrap; justify-content: flex-start;
+        justify-self: stretch; gap: 4px; margin-top: 4px;
+      }
+      .list-wrap tbody td:first-child > .work-actions .status-btn {
+        padding: 5px 7px; font-size: 10.5px; min-height: 30px;
+      }
+    }
+
+    /* ⑤ PC・タブレット横長：右詰め */
+    @media (min-width: 1025px), (min-width: 641px) and (orientation: landscape) {
+      .list-wrap td.cell-main > .work-actions {
+        justify-self: end; display: flex; flex-wrap: nowrap;
+        justify-content: flex-end; align-items: center;
+      }
+    }
+
+    /* ⑥ 詳細画面：左詰め・1行（PC・タブレット・スマホ共通） */
+    .detail-card > .work-actions,
+    .detail-head > .work-actions {
+      display: flex; flex-wrap: nowrap; justify-content: flex-start;
+      align-items: center; max-width: 100%;
+    }
+    @media (max-width: 640px) {
+      .detail-card > .work-actions .status-btn,
+      .detail-head > .work-actions .status-btn { padding: 5px 7px; font-size: 11px; }
+    }
+
+    /* ⑦ 3列（PC の狭いサイドバーでも収まるよう、余白と文字サイズを調整） */
+    .status-check {
+      padding: 8px 6px; gap: 5px; justify-content: flex-start;
+      font-size: clamp(10px, 0.35vw + 9px, 13px);
+    }
+    .status-check input { width: 15px; height: 15px; }
+    /* ⑦ スマホ：3列のチェックボックスを窮屈にしない */
+    @media (max-width: 640px) {
+      .status-checkboxes { gap: 6px; }
+      .status-check { padding: 8px 5px; font-size: 11px; gap: 4px; justify-content: flex-start; }
+      .status-check input { width: 15px; height: 15px; }
+    }
 </style>
 </head>
 <body>
@@ -1165,14 +1224,16 @@
           <div class="status-filter">
             <div class="status-checkboxes" id="statusCheckboxes">
               <label class="status-check"><input type="checkbox" id="statusFav" checked> 気になる</label>
+              <label class="status-check"><input type="checkbox" id="statusWatching" checked> 視聴中</label>
               <label class="status-check"><input type="checkbox" id="statusWatched" checked> 視聴済</label>
               <label class="status-check"><input type="checkbox" id="statusStopped" checked> 視聴止</label>
               <label class="status-check"><input type="checkbox" id="statusUnclassified" checked> 未分類</label>
+              <span class="status-check-spacer" aria-hidden="true"></span>
             </div>
             <button class="secondary" id="exportStatus" type="button">視聴状況を出力</button>
             <button class="secondary danger" id="clearStatus" type="button">視聴状況を全消去</button>
           </div>
-          <div class="status-count" id="statusCount">気になる 0件 / 視聴済 0件 / 視聴止 0件</div>
+          <div class="status-count" id="statusCount">気になる 0件 / 視聴中 0件 / 視聴済 0件 / 視聴止 0件</div>
         </div>
         <div class="sec btns">
           <button class="primary" id="apply">検索する</button>
@@ -1716,27 +1777,35 @@ function writeUserStatus(status) {
 
 function getWorkStatus(work) {
   const status = readUserStatus()[workKey(work)] || {};
-  return { fav: Boolean(status.fav), watched: Boolean(status.watched), stopped: Boolean(status.stopped) };
+  /* ⑨ 既存の保存データ（fav/watched/stopped）はそのまま読める。watching は未定義なら false */
+  return { fav: Boolean(status.fav), watching: Boolean(status.watching), watched: Boolean(status.watched), stopped: Boolean(status.stopped) };
 }
 
 function updateStatusSummary() {
   const status = readUserStatus();
   const values = Object.values(status);
   const fav = values.filter(v => v && v.fav).length;
+  const watching = values.filter(v => v && v.watching).length;
   const watched = values.filter(v => v && v.watched).length;
   const stopped = values.filter(v => v && v.stopped).length;
-  if ($('statusCount')) $('statusCount').textContent = `気になる ${fav}件 / 視聴済 ${watched}件 / 視聴止 ${stopped}件`;
+  if ($('statusCount')) $('statusCount').textContent = `気になる ${fav}件 / 視聴中 ${watching}件 / 視聴済 ${watched}件 / 視聴止 ${stopped}件`;
+}
+
+const STATUS_TEXT = { fav: '気になる', watching: '視聴中', watched: '視聴済', stopped: '視聴止' };
+
+/* 先頭記号（OFF/ON）。記号とラベルを別要素にして、幅の変化を抑える */
+function statusIcon(type, active) {
+  if (type === 'fav') return active ? '★' : '☆';
+  if (type === 'watching') return active ? '▶' : '▷';
+  if (type === 'watched') return active ? '◎' : '○';
+  return '✕';                                   // stopped は ON/OFF とも ✕
 }
 
 function statusButton(work, type) {
   const current = getWorkStatus(work);
   const active = Boolean(current[type]);
-  const labelMap = {
-    fav: active ? '★ 気になる' : '☆ 気になる',
-    watched: active ? '✓ 視聴済' : '○ 視聴済',
-    stopped: active ? '✕ 視聴止' : '○ 視聴止'
-  };
-  return `<button type="button" class="status-btn ${type}${active ? ' is-active' : ''}" data-status-action="${type}" data-work-key="${escapeHtml(workKey(work))}" aria-pressed="${active}">${labelMap[type]}</button>`;
+  const text = STATUS_TEXT[type] || type;
+  return `<button type="button" class="status-btn ${type}${active ? ' is-active' : ''}" data-status-action="${type}" data-work-key="${escapeHtml(workKey(work))}" aria-pressed="${active}"><span class="st-ic" aria-hidden="true">${statusIcon(type, active)}</span>${text}</button>`;
 }
 
 const state = { page: 1, filtered: [...DATA], perPage: 50, selectedTags: [], detailIndex: -1, listScroll: { windowY: 0, listWrapTop: 0 } };
@@ -1919,6 +1988,7 @@ function applyFilters() {
   const perPage = Number($('perPage').value);
   const selectedTags = state.selectedTags || [];
   const statusFav = $('statusFav') ? $('statusFav').checked : true;
+  const statusWatching = $('statusWatching') ? $('statusWatching').checked : true;
   const statusWatched = $('statusWatched') ? $('statusWatched').checked : true;
   const statusStopped = $('statusStopped') ? $('statusStopped').checked : true;
   const statusUnclassified = $('statusUnclassified') ? $('statusUnclassified').checked : true;
@@ -1926,8 +1996,9 @@ function applyFilters() {
 
   let rows = DATA.filter(r => {
     const workStatus = savedStatus[workKey(r)] || {};
-    const hasStatus = Boolean(workStatus.fav || workStatus.watched || workStatus.stopped);
+    const hasStatus = Boolean(workStatus.fav || workStatus.watching || workStatus.watched || workStatus.stopped);
     if (workStatus.fav && !statusFav) return false;
+    if (workStatus.watching && !statusWatching) return false;
     if (workStatus.watched && !statusWatched) return false;
     if (workStatus.stopped && !statusStopped) return false;
     if (!hasStatus && !statusUnclassified) return false;
@@ -2096,9 +2167,10 @@ function render() {
           <div class="title-row"><div class="title">${escapeHtml(r.title || '—')}</div></div>
           <div class="sub">${r.runtime && r.runtime !== '-' ? '上映時間: ' + escapeHtml(r.runtime) + '分' : '上映時間: -'}</div>
           <!-- スマホ版一覧専用：上映時間の行の代わりに「種別」＋バッジを表示（PC・タブレットでは .sub を表示） -->
-          <div class="meta-kind"><span class="meta-label">視聴状況</span></div>
+          <div class="meta-kind" aria-hidden="true"></div>
           <div class="work-actions" aria-label="${escapeHtml(r.title || '作品')}の視聴状況">
             ${statusButton(r, 'fav')}
+            ${statusButton(r, 'watching')}
             ${statusButton(r, 'watched')}
             ${statusButton(r, 'stopped')}
           </div>
@@ -2182,7 +2254,7 @@ function resetFilters() {
   $('episodesMax').value = '';
   $('sort').value = 'year_desc';
   $('perPage').value = '50';
-  ['statusFav','statusWatched','statusStopped','statusUnclassified'].forEach(id => { const el = $(id); if (el) el.checked = true; });
+  ['statusFav','statusWatching','statusWatched','statusStopped','statusUnclassified'].forEach(id => { const el = $(id); if (el) el.checked = true; });
   state.selectedTags = [];
   renderTagFilters();
   applyFilters();
@@ -2193,9 +2265,9 @@ function handleStatusClick(button) {
   const action = button.dataset.statusAction;
   const status = readUserStatus();
   const current = status[key] || {};
-  const next = { fav: false, watched: false, stopped: false };
+  const next = { fav: false, watching: false, watched: false, stopped: false };
   if (!current[action]) next[action] = true;
-  if (next.fav || next.watched || next.stopped) status[key] = next;
+  if (next.fav || next.watching || next.watched || next.stopped) status[key] = next;
   else delete status[key];
   if (!writeUserStatus(status)) {
     window.alert('ブラウザに状態を保存できませんでした。');
@@ -2211,16 +2283,14 @@ function handleStatusClick(button) {
         const on = Boolean(st[btn.dataset.statusAction]);
         btn.classList.toggle('is-active', on);
         btn.setAttribute('aria-pressed', on);
-        const labelMap = {
-          fav: on ? '★ 気になる' : '☆ 気になる',
-          watched: on ? '✓ 視聴済' : '○ 視聴済',
-          stopped: on ? '✕ 視聴止' : '○ 視聴止'
-        };
-        btn.textContent = labelMap[btn.dataset.statusAction];
+        const action = btn.dataset.statusAction;
+        const iconEl = btn.querySelector('.st-ic');
+        if (iconEl) iconEl.textContent = statusIcon(action, on);
+        else btn.textContent = statusIcon(action, on) + ' ' + (STATUS_TEXT[action] || '');
       });
     }
   }
-  const allStatusChecked = ['statusFav','statusWatched','statusStopped','statusUnclassified'].every(id => { const el = $(id); return el ? el.checked : true; });
+  const allStatusChecked = ['statusFav','statusWatching','statusWatched','statusStopped','statusUnclassified'].every(id => { const el = $(id); return el ? el.checked : true; });
   if (!allStatusChecked) applyFilters();
   else render();
 }
@@ -2281,6 +2351,7 @@ function showDetail(id) {
         <div class="detail-title">${escapeHtml(work.title || '—')}</div>
         <div class="work-actions" aria-label="${escapeHtml(work.title || '作品')}の視聴状況">
           ${statusButton(work, 'fav')}
+          ${statusButton(work, 'watching')}
           ${statusButton(work, 'watched')}
           ${statusButton(work, 'stopped')}
         </div>
@@ -2309,6 +2380,7 @@ function showDetail(id) {
       </div>
       <div class="work-actions" aria-label="${escapeHtml(work.title || '作品')}の視聴状況">
         ${statusButton(work, 'fav')}
+        ${statusButton(work, 'watching')}
         ${statusButton(work, 'watched')}
         ${statusButton(work, 'stopped')}
       </div>
@@ -2605,7 +2677,7 @@ window.addEventListener('load', syncMobileBottomBar);
 window.addEventListener('resize', syncMobileBottomBar);
 window.addEventListener('orientationchange', syncMobileBottomBar);
 $('perPage').onchange = applyFilters;
-['statusFav','statusWatched','statusStopped','statusUnclassified'].forEach(id => { const el = $(id); if (el) el.onchange = applyFilters; });
+['statusFav','statusWatching','statusWatched','statusStopped','statusUnclassified'].forEach(id => { const el = $(id); if (el) el.onchange = applyFilters; });
 if ($('genre')) $('genre').onchange = applyFilters;
 $('tbody').addEventListener('click', event => {
   const accBtn = event.target.closest('.card-acc-btn');
@@ -2644,14 +2716,14 @@ $('bottomDetailNext').onclick = () => {
   if (state.detailIndex < state.filtered.length - 1 && state.filtered[state.detailIndex + 1]) showDetail(state.filtered[state.detailIndex + 1].id);
 };
 $('clearStatus').onclick = () => {
-  if (!window.confirm('保存されている「気になる」「視聴済」「視聴止」をすべて消去しますか？')) return;
+  if (!window.confirm('保存されている「気になる」「視聴中」「視聴済」「視聴止」をすべて消去しますか？')) return;
   try { localStorage.removeItem(STATUS_STORAGE_KEY); } catch (error) {}
   updateStatusSummary();
   render();
 };
 $('exportStatus').onclick = () => {
   const status = readUserStatus();
-  const statusLabels = [['fav', '気になる'], ['watched', '視聴済'], ['stopped', '視聴止']];
+  const statusLabels = [['fav', '気になる'], ['watching', '視聴中'], ['watched', '視聴済'], ['stopped', '視聴止']];
   const rows = [];
   Object.keys(status).forEach((key) => {
     const entry = status[key] || {};
