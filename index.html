@@ -1164,7 +1164,7 @@
         height: 20px; padding: 0 8px; font-size: 12px; line-height: 1;
         text-align: center; vertical-align: middle;
       }
-      .list-wrap tbody td:first-child .title { font-size: 16px; line-height: 1.35; }
+      .list-wrap tbody td:first-child .title { font-size: 17px; line-height: 1.35; }
     }
 
     /* ===== v40: 作品名のブルー輪郭をさらに一段階細く＋色を淡く =====
@@ -1548,6 +1548,43 @@ function commitSuggest(value) {
   closeSuggestPop();
 }
 
+// ==== v41: フリーワード検索サジェストの固定枠（17〜20件目）とジャンル上限 ====
+const SUGGEST_HEAD_LIMIT = 16; // 1〜16件目は従来ルール（頻出順）
+const SUGGEST_GENRE_LIMIT = 9; // ジャンル由来の候補は頻出上位9件まで
+// 17件目: キーワードの最頻出（keyword を「/」区切りで集計）／18〜20件目は固定語
+const SUGGEST_PINNED_TAIL = (() => {
+  const counts = new Map();
+  for (const r of DATA) {
+    for (const t of splitSuggestTokens(r && r.keyword)) counts.set(t, (counts.get(t) || 0) + 1);
+  }
+  let top = '';
+  let topCount = -1;
+  for (const [name, count] of counts) {
+    if (count > topCount || (count === topCount && name < top)) { top = name; topCount = count; }
+  }
+  return [top, '週刊少年ジャンプ', '新海誠', '菅野よう子'].filter(Boolean);
+})();
+// 頻出上位9件に入らないジャンル語は、他の項目（キーワード等）にも登場しない限り候補から外す
+const SUGGEST_EXCLUDED_GENRES = (() => {
+  const GENRE_FIELDS = ['genre1', 'genre2', 'genre3'];
+  const genreCounts = new Map();
+  for (const r of DATA) {
+    for (const f of GENRE_FIELDS) { const v = r && r[f]; if (v) genreCounts.set(v, (genreCounts.get(v) || 0) + 1); }
+  }
+  const topGenres = new Set(Array.from(genreCounts.entries())
+    .sort((a, b) => (b[1] - a[1]) || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
+    .slice(0, SUGGEST_GENRE_LIMIT).map(([name]) => name));
+  const otherValues = new Set();
+  const plainFields = SUGGEST_PLAIN_FIELDS.filter(f => !GENRE_FIELDS.includes(f));
+  for (const r of DATA) {
+    for (const f of plainFields) { const v = r && r[f]; if (v) otherValues.add(v); }
+    for (const f of SUGGEST_SPLIT_FIELDS) for (const t of splitSuggestTokens(r && r[f])) otherValues.add(t);
+  }
+  const excluded = new Set();
+  for (const name of genreCounts.keys()) if (!topGenres.has(name) && !otherValues.has(name)) excluded.add(name);
+  return excluded;
+})();
+
 function renderSuggestions(query, ctx) {
   const pop = document.getElementById('suggest-pop');
   if (!pop) return;
@@ -1561,11 +1598,21 @@ function renderSuggestions(query, ctx) {
       if (hay.includes(q)) { seen.add(t.title); titleMatches.push(t.title); }
     }
   }
+  const byScore = (a, b) => ((SUGGEST_SCORES.get(b) || 0) - (SUGGEST_SCORES.get(a) || 0)) || (a < b ? -1 : a > b ? 1 : 0);
   const base = (q ? SUGGESTIONS.filter(v => normalizeKana(String(v).toLowerCase()).includes(q)) : SUGGESTIONS)
-    .filter(v => !READING_VALUES.has(v) && !seen.has(v) && (seen.add(v), true));
-  const items = titleMatches.concat(base)
-    .sort((a, b) => ((SUGGEST_SCORES.get(b) || 0) - (SUGGEST_SCORES.get(a) || 0)) || (a < b ? -1 : a > b ? 1 : 0))
-    .slice(0, SUGGEST_LIMIT);
+    .filter(v => !READING_VALUES.has(v) && !seen.has(v) && (seen.add(v), true))
+    .filter(v => !SUGGEST_EXCLUDED_GENRES.has(v));
+  let items;
+  if (q) {
+    // 入力あり: 絞り込んだ候補を頻出順に最大20件
+    items = titleMatches.concat(base).sort(byScore).slice(0, SUGGEST_LIMIT);
+  } else {
+    // 入力なし（空欄クリック）: 1〜16件目は従来ルール、17〜20件目は固定語
+    const pinnedSet = new Set(SUGGEST_PINNED_TAIL);
+    // 固定語と重複する候補は1〜16件目側から外し、その分は次の候補が繰り上がる
+    const head = base.filter(v => !pinnedSet.has(v)).sort(byScore).slice(0, SUGGEST_HEAD_LIMIT);
+    items = head.concat(SUGGEST_PINNED_TAIL).slice(0, SUGGEST_LIMIT);
+  }
   SUGGEST_STATE.items = items;
   SUGGEST_STATE.active = -1;
   // 仕様: 空入力では既定で閉じる。空でも全リストを開くのは
@@ -2770,27 +2817,55 @@ $('clearStatus').onclick = () => {
   updateStatusSummary();
   render();
 };
+// CSV出力用: 数値のみ取り出す（値が無い/'-'の場合は '-' を維持）
+const csvNumber = (value) => {
+  if (value === null || value === undefined) return '-';
+  const text = String(value).trim();
+  if (!text || text === '-') return '-';
+  const matched = text.match(/\d+(?:\.\d+)?/);
+  if (!matched) return '-';
+  const num = matched[0];
+  return (/^\./.test(num) ? '0' + num : num);
+};
 $('exportStatus').onclick = () => {
   const status = readUserStatus();
   const statusLabels = [['fav', '気になる'], ['watching', '視聴中'], ['watched', '視聴済'], ['stopped', '視聴止']];
+  const statusRank = new Map(statusLabels.map(([flag], i) => [flag, i]));
   const rows = [];
   Object.keys(status).forEach((key) => {
     const entry = status[key] || {};
-    const marks = statusLabels.filter(([flag]) => entry[flag]).map(([, label]) => label);
-    if (!marks.length) return;
+    const flags = statusLabels.filter(([flag]) => entry[flag]).map(([flag]) => flag);
+    if (!flags.length) return;
     let title = key;
+    let work = null;
     if (key.indexOf('id:') === 0) {
       const workId = key.slice(3);
-      const work = (typeof DATA !== 'undefined' && Array.isArray(DATA)) ? DATA.find(d => String(d.id) === workId) : null;
+      work = (typeof DATA !== 'undefined' && Array.isArray(DATA)) ? DATA.find(d => String(d.id) === workId) : null;
       if (work && work.title) title = work.title;
     } else if (key.indexOf('fallback:') === 0) {
       title = key.slice('fallback:'.length).split('|')[0] || key;
     }
-    rows.push([title, marks.join('/')]);
+    if (!work && title && typeof DATA !== 'undefined' && Array.isArray(DATA)) {
+      work = DATA.find(d => d.title === title) || null;
+    }
+    // 複数の状態が付いている場合は「気になる→視聴中→視聴済→視聴止」で先のものを採用
+    const rank = Math.min.apply(null, flags.map(f => statusRank.get(f)));
+    rows.push({
+      rank,
+      label: statusLabels[rank][1],
+      title,
+      kind: (work && work.kind) ? String(work.kind) : '-',
+      // CSVでは単位を付けず数値のみを出力（画面表示の「話」「分」はそのまま）
+      episodes: csvNumber(work && work.episodes),
+      runtime: csvNumber(work && work.runtime)
+    });
   });
-  rows.sort((a, b) => a[0].localeCompare(b[0], 'ja'));
+  // 視聴状況の順（気になる→視聴中→視聴済→視聴止）、同順内は作品名の五十音順
+  rows.sort((a, b) => (a.rank - b.rank) || String(a.title).localeCompare(String(b.title), 'ja'));
   const escapeCsv = (value) => '"' + String(value).replace(/"/g, '""') + '"';
-  const csvLines = ['作品名,視聴状況'].concat(rows.map(row => row.map(escapeCsv).join(',')));
+  const header = ['視聴状況', '作品名', '種別', '話数', '時間'];
+  const csvLines = [header.join(',')]
+    .concat(rows.map(r => [r.label, r.title, r.kind, r.episodes, r.runtime].map(escapeCsv).join(',')));
   const csv = '\uFEFF' + csvLines.join('\r\n') + '\r\n';
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
