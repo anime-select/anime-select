@@ -24,7 +24,7 @@
   <link rel="apple-touch-icon" href="./profile.png">
   <link rel="shortcut icon" type="image/png" href="./profile.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>アニメセレクト｜複数条件でのアニメ検索から視聴状況管理まで</title>
+  <title>アニメセレクト｜複数条件で探せるアニメ作品検索サイト</title>
   <style>
     :root {
       --bg: #15181D;
@@ -913,10 +913,14 @@
           ・「種別／話数／上映時間／放送・公開年」の横幅の比率をスマホ版（0.8 : 0.7 : 1 : 1.55）と同じにする
           ・「放送・公開年」のラベルが折り返さないようにする（white-space: nowrap）
          ============================================================ */
-      .detail-grid { grid-template-columns: 0.8fr 0.7fr 1fr 1.55fr; gap: 4px; }
+      /* v47 ③: 種別／話数／上映時間／放送・公開年 を4等分
+         （「放送・公開年」のラベルが折り返さないことを実測確認したうえで適用） */
+      .detail-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
       .detail-item { padding: 8px 10px; border-radius: 8px; }
       .detail-item.detail-stat { text-align: left; padding: 8px 6px; }
-      .detail-item.detail-stat .k { font-size: 11px; margin-bottom: 3px; line-height: 1.2; white-space: nowrap; }
+      /* v47 ③: 4等分の最狭幅（641–660px）でもラベルが箱からはみ出さないよう微調整。
+         661px以上は従来どおり 11px のまま */
+      .detail-item.detail-stat .k { font-size: clamp(10px, 1.5vw, 11px); margin-bottom: 3px; line-height: 1.2; white-space: nowrap; }
       .detail-item.detail-stat .v { font-size: 13px; font-weight: 700; line-height: 1.3; word-break: break-word; }
       .detail-item .k { font-size: 11px; margin-bottom: 3px; line-height: 1.2; white-space: nowrap; }
       .detail-item .v { font-size: 13px; font-weight: 700; line-height: 1.3; word-break: break-word; }
@@ -1283,6 +1287,47 @@
         -webkit-overflow-scrolling: touch;
       }
     }
+    /* ============================================================
+       v46 ①: 幅370px未満で一覧（カード・アコーディオンバー）の右端が
+               切れていた問題を修正。grid アイテムの min-width:auto を解除し、
+               極小幅では一括開閉ボタンを2段に折り返す。
+       v46 ②: ヒーロー「種別」がスマホで2行に折れ「/」が行頭に落ちていた問題を修正。
+               種別カードのみ全幅にし、文字サイズを可変にして1行に収める。
+       ============================================================ */
+    .layout > main { min-width: 0; }
+    .stats .stat:last-child .num { white-space: nowrap; }
+    @media (max-width: 640px) {
+      .layout, .layout > main { min-width: 0; }
+      .stats .stat:last-child { grid-column: 1 / -1; }
+      .stats .stat:last-child .num { font-size: clamp(13px, 4.6vw, 18px); }
+    }
+    @media (max-width: 370px) {
+      .list-header .card-acc-bar,
+      .card-acc-bar { flex-wrap: wrap; row-gap: 6px; }
+      .card-acc-bar button { flex: 1 1 100%; font-size: 11px; padding: 8px 6px; }
+    }
+    /* ============================================================
+       v48 ④: スマホのページネーションで「次へ →」だけが2行目に孤立していた問題を修正。
+               ≤430px では折り返しを禁止し、番号ボタンの左右パディングを詰めて1行に収める
+               （タップ領域の高さ44pxは維持）。
+       v48 ⑤: ↑ ↓ ＋ － ☆ ○ ✕ などの記号が欧文フォールバック（Arial）で描画され、
+               和文と字面・字幅が揃わなかった問題を修正。UI部品のフォントを和文サンセリフ
+               スタックで明示し、記号と和文を同じ書体から取得させる。
+       ============================================================ */
+    button, .page-btn, .tag-btn, .status-btn, .status-check, .status-count,
+    .card-acc-btn, .list-scroll-btn, .filter-fab, .sidebar-close, .mobile-bottom-bar button,
+    .detail-btn, .imgsearch-btn, .pag-scroll-top {
+      font-family: "Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Yu Gothic",
+                   Meiryo, "Noto Sans CJK JP","Noto Sans JP", system-ui, -apple-system, sans-serif;
+    }
+    @media (max-width: 430px) {
+      .pagination .pages { flex-wrap: nowrap; gap: 3px; }
+      .pagination .page-btn {
+        min-width: 26px; min-height: 44px; padding: 4px 6px;
+        font-size: 12px; line-height: 1.15; white-space: nowrap;
+      }
+      .pagination .pages .result { font-size: 12px; }
+    }
 </style>
 </head>
 <body>
@@ -1534,7 +1579,7 @@
     </div>
 
     <div class="footer">
-      <div class="footer-line1">最終更新日: 2026-10-26・作品数 509件</div>
+      <div class="footer-line1">最終更新日: 2026-10-27・作品数 509件</div>
       <div class="footer-links">
         <div class="footer-links__side footer-links__side--left">
           <button type="button" class="footer-link" id="policyOpen" aria-haspopup="dialog" aria-controls="policyModal">プライバシーポリシー</button>
