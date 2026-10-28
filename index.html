@@ -24,7 +24,7 @@
   <link rel="apple-touch-icon" href="./profile.png">
   <link rel="shortcut icon" type="image/png" href="./profile.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>アニメセレクト｜複数条件で探せるアニメ作品検索サイト</title>
+  <title>アニメセレクト｜複数条件でのアニメ検索から視聴状況管理まで</title>
   <style>
     :root {
       --bg: #15181D;
@@ -2134,7 +2134,11 @@ function recText(r) {
 }
 
 function normalizeKana(str) {
-  return String(str ?? '').replace(/[\u30a1-\u30f6]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60));
+  // v49: 半角カナ(ｷｬﾝﾌﾟ)→全角カナをNFKCで統一 → 全角スペース→半角 → カタカナ→ひらがな
+  let s = String(str ?? '');
+  try { s = s.normalize('NFKC'); } catch (error) { /* NFKC非対応環境ではそのまま */ }
+  s = s.replace(/\u3000/g, ' ');
+  return s.replace(/[\u30a1-\u30f6]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60));
 }
 
 // ジャンルの読み（五十音ソート・絞り込み用）。update_anime_works.py が META.genre_readings に
@@ -2197,7 +2201,7 @@ function applyFilters() {
   const kindBoxes = Array.from(document.querySelectorAll('#kindChecks .kind-cb'));
   const kindSet = new Set(kindBoxes.filter(cb => cb.checked).map(cb => String(cb.value).trim().toLowerCase()));
   const allKindsOff = kindBoxes.length > 0 && kindSet.size === 0;
-  const genre = $('genre') ? $('genre').value.trim().toLowerCase() : '';
+  const genre = $('genre') ? normalizeKana($('genre').value.trim()).toLowerCase() : '';
   const episodesMin = $('episodesMin').value.trim();
   const episodesMax = $('episodesMax').value.trim();
   const minEpisodes = episodesMin === '' ? null : Number(episodesMin);
@@ -2215,12 +2219,12 @@ function applyFilters() {
     $('yearMax').reportValidity();
     return;
   }
-  const company = $('company') ? $('company').value.trim().toLowerCase() : '';
-  const director = $('director') ? $('director').value.trim().toLowerCase() : '';
-  const writer = $('writer') ? $('writer').value.trim().toLowerCase() : '';
-  const music = $('music') ? $('music').value.trim().toLowerCase() : '';
-  const themeSong = $('theme_song') ? $('theme_song').value.trim().toLowerCase() : '';
-  const cast = $('cast') ? $('cast').value.trim().toLowerCase() : '';
+  const company = $('company') ? normalizeKana($('company').value.trim()).toLowerCase() : '';
+  const director = $('director') ? normalizeKana($('director').value.trim()).toLowerCase() : '';
+  const writer = $('writer') ? normalizeKana($('writer').value.trim()).toLowerCase() : '';
+  const music = $('music') ? normalizeKana($('music').value.trim()).toLowerCase() : '';
+  const themeSong = $('theme_song') ? normalizeKana($('theme_song').value.trim()).toLowerCase() : '';
+  const cast = $('cast') ? normalizeKana($('cast').value.trim()).toLowerCase() : '';
   const sort = $('sort').value;
   const perPage = Number($('perPage').value);
   const selectedTags = state.selectedTags || [];
@@ -2233,12 +2237,18 @@ function applyFilters() {
 
   let rows = DATA.filter(r => {
     const workStatus = savedStatus[workKey(r)] || {};
+    // v49: 未分類＝「気になる/視聴中/視聴済/視聴止」がすべて未設定の作品
     const hasStatus = Boolean(workStatus.fav || workStatus.watching || workStatus.watched || workStatus.stopped);
-    if (workStatus.fav && !statusFav) return false;
-    if (workStatus.watching && !statusWatching) return false;
-    if (workStatus.watched && !statusWatched) return false;
-    if (workStatus.stopped && !statusStopped) return false;
-    if (!hasStatus && !statusUnclassified) return false;
+    if (hasStatus) {
+      // 複数状態を持つ作品は「いずれか1つでもチェックされていれば表示」（AND除外にしない）
+      const matched = (workStatus.fav && statusFav)
+                   || (workStatus.watching && statusWatching)
+                   || (workStatus.watched && statusWatched)
+                   || (workStatus.stopped && statusStopped);
+      if (!matched) return false;
+    } else if (!statusUnclassified) {
+      return false;
+    }
     const yNum = Number(r.year);
     if (yearMinNum != null && yNum < yearMinNum) return false;
     if (yearMaxNum != null && yNum > yearMaxNum) return false;
@@ -2247,33 +2257,33 @@ function applyFilters() {
     if (!matchEpisodeRange(r.episodes, episodesMin, episodesMax)) return false;
     if (selectedTags.length && !selectedTags.every(tagKey => Boolean(r[tagKey]))) return false;
     if (company) {
-      const companies = [r.company1, r.company2, r.company3].filter(Boolean).join(' ').toLowerCase();
+      const companies = normalizeKana([r.company1, r.company2, r.company3].filter(Boolean).join(' ')).toLowerCase();
       if (!companies.includes(company)) return false;
     }
     if (director) {
-      const ds = [r.chief_director, r.director, r.assistant_director].filter(Boolean).join(' ').toLowerCase();
+      const ds = normalizeKana([r.chief_director, r.director, r.assistant_director].filter(Boolean).join(' ')).toLowerCase();
       if (!ds.includes(director)) return false;
     }
-    if (music && !String(r.music).toLowerCase().includes(music)) return false;
-    if (themeSong && !String(r.theme_song || '').toLowerCase().includes(themeSong)) return false;
+    if (music && !normalizeKana(String(r.music)).toLowerCase().includes(music)) return false;
+    if (themeSong && !normalizeKana(String(r.theme_song || '')).toLowerCase().includes(themeSong)) return false;
     if (writer) {
-      const ws = [r.series_composition, r.script].filter(Boolean).join(' ').toLowerCase();
+      const ws = normalizeKana([r.series_composition, r.script].filter(Boolean).join(' ')).toLowerCase();
       if (!ws.includes(writer)) return false;
     }
-    if (cast && !String(r.cast || '').toLowerCase().includes(cast)) return false;
+    if (cast && !normalizeKana(String(r.cast || '')).toLowerCase().includes(cast)) return false;
     if (genre) {
       // v20: ジャンルは完全一致で絞り込む（例：「コメディ」選択時に「ラブコメディ」を拾わない）
       const genres = [r.genre1, r.genre2, r.genre3]
         .filter(Boolean)
         .map(v => String(v).trim().toLowerCase());
       if (genre) {
-      const gList = [r.genre1, r.genre2, r.genre3].filter(Boolean).map(g => String(g).trim().toLowerCase());
-      const genreIsExact = (window.__comboGenres || []).some(g => String(g).trim().toLowerCase() === genre);
+      const gList = [r.genre1, r.genre2, r.genre3].filter(Boolean).map(g => normalizeKana(String(g).trim()).toLowerCase());
+      const genreIsExact = (window.__comboGenres || []).some(g => normalizeKana(String(g).trim()).toLowerCase() === genre);
       if (genreIsExact) { if (!gList.includes(genre)) return false; }
       else if (!gList.some(g => g.includes(genre))) {
         // 読みでも絞り込めるようにする（コンボボックスで読み入力時。画面には読みは出ない）
         const gReadings = window.__genreReadings || {};
-        if (!gList.some(g => String(gReadings[g] || '').toLowerCase().includes(genre))) return false;
+        if (!gList.some(g => normalizeKana(String(gReadings[g] || '')).toLowerCase().includes(genre))) return false;
       }
     }
     }
@@ -3462,6 +3472,7 @@ else initComboWidgets();
     window.__policyModal = { open: openModal, close: closeModal };
   })();
   </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 </body></html>
