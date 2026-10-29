@@ -54,6 +54,19 @@
     .hero { background: radial-gradient(circle at top left, rgba(201,126,107,.13), transparent 35%), linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.14); border-radius: 4px; padding: 28px; box-shadow: var(--shadow); }
     .hero h1 { margin: 0 0 10px; font-size: clamp(28px, 4vw, 42px); font-family: 'Hiragino Mincho ProN','Yu Mincho','YuMincho','Noto Serif JP',serif; border-bottom: 3px double var(--accent); padding-bottom: 12px; letter-spacing: 0.05em; }
     .hero p { margin: 0; color: var(--muted); line-height: 1.9; font-family: 'Hiragino Mincho ProN','Yu Mincho','Noto Serif JP',serif; text-align: justify; }
+    /* v51 ➂: 紹介文をヒーロー統計と同じ枠で囲み、文字色と行間で読みやすさを上げる */
+    .hero p.hero-lead {
+      margin-top: 16px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,.045);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 4px;
+      color: #D7DEE8;
+      font-size: 15px;
+      line-height: 2.0;
+      letter-spacing: 0.01em;
+      text-align: justify;
+    }
     .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 12px; margin-top: 18px; }
     .stat { background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.10); border-radius: 4px; padding: 14px 16px; }
     .stat .num { font-size: 24px; font-weight: 800; margin-top: 4px; }
@@ -168,7 +181,10 @@
       .sidebar { padding: 14px; }
       .hero h1 { font-size: 30px; }
       .hero p { font-size: 14px; }
+      .hero p.hero-lead { padding: 12px 14px; line-height: 1.95; }
       .stats { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+      /* v52 ➂: 紹介文の枠→統計の間隔を統計カード間の gap と揃える */
+      .stats { margin-top: 10px; }
       .stat { padding: 12px; }
       .stat .num { font-size: 20px; }
       .list-wrap { max-height: 65vh; }
@@ -189,7 +205,9 @@
       .wrap { padding: 12px; }
       .hero { padding: 18px; border-radius: 18px; }
       .hero p { font-size: 13px; }
+      .hero p.hero-lead { margin-top: 12px; padding: 11px 12px; font-size: 14px; line-height: 1.85; }
       .stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .stats { margin-top: 8px; }
       .stat { padding: 12px; }
       .stat .num { font-size: 18px; }
 
@@ -1328,13 +1346,28 @@
       }
       .pagination .pages .result { font-size: 12px; }
     }
+    /* ============================================================
+       v53: 次の文字色を紹介文（.hero p.hero-lead = #D7DEE8）に統一
+            ・検索バーの各ラベル（フリーワード検索／制作会社／監督 など）
+            ・件数表示（●●件ヒット）、ページ表示（1/●ページ）、内訳
+            ・ページネーション付近の「〇–〇件を表示」
+       ============================================================ */
+    .label,
+    .result,
+    #resultInfo,
+    #resultInfo .agg,
+    #pageInfo,
+    .result-info .agg,
+    .pagination .pages .result {
+      color: #D7DEE8;
+    }
 </style>
 </head>
 <body>
   <div class="wrap">
     <section class="hero">
       <h1># アニメセレクト</h1>
-      <p>複数条件を組み合わせて「次に見たいアニメ」を探せる検索サイトです。作品名やキーワードをはじめ、放送年・種別・話数・制作会社・監督・音楽など、お好みの条件を組み合わせて絞り込めます。</p>
+      <p class="hero-lead">複数条件を組み合わせて『次に見たいアニメ』を快適に探せる検索サイトです。作品名やキーワードをはじめ、放送年・話数・制作会社・監督のほか、「1クール完結」など独自に厳選したタグから、お好みの条件を組み合わせてカタログのように使えます。思いがけない作品との出会いがあるかもしれません。</p>
       <div class="stats" id="stats">
     <div class="stat"><div>作品数</div><div class="num">510</div></div>
     <div class="stat"><div>収録年</div><div class="num">1979–2026</div></div>
