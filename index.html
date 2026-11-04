@@ -1380,6 +1380,32 @@
     .ad-slide.is-active { display: block; }
     .ad-slide a { display: block; }
     .ad-dots { display: flex; justify-content: center; align-items: center; gap: 8px; }
+    /* ===== v59: 景品表示法（ステマ規制）対応 【PR】表記 =====
+       広告枠の右下に重ねて表示。pointer-events:none で広告クリックを妨げず、
+       position:absolute のため広告のサイズ・レイアウトは変化しない。
+       スライド切替は display の切替のみなので、ラベルは常に表示中の広告に付く。 */
+    .ad-slide { position: relative; }
+    .ad-slide::after {
+      content: "【PR】";
+      position: absolute;
+      right: 3px;
+      bottom: 3px;
+      z-index: 3;
+      padding: 1px 4px;
+      border-radius: 3px;
+      background: rgba(0, 0, 0, 0.62);
+      color: #FFFFFF;
+      font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", Meiryo, "Noto Sans CJK JP", "Noto Sans JP", system-ui, -apple-system, sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 1.35;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    @media (max-width: 640px) {
+      .ad-slide::after { right: 2px; bottom: 2px; padding: 1px 3px; font-size: 9px; }
+    }
     .ad-dot {
       width: 9px; height: 9px; min-width: 9px; padding: 0; border-radius: 50%;
       border: 1px solid rgba(255,255,255,.34); background: rgba(255,255,255,.13);
@@ -1679,13 +1705,23 @@
 <img border="0" width="320" height="50" alt="" src="https://www22.a8.net/svt/bgt?aid=261103069852&wid=001&eno=01&mid=s00000022246001009000&mc=1"></a>
 <img border="0" width="1" height="1" src="https://www14.a8.net/0.gif?a8mat=4BGCF1+E39C6Q+4RNG+609HT" alt=""></div>
             </div>
+            <!-- 6. あみあみ -->
+            <div class="ad-slide" data-ad-index="5">
+              <div class="ad-pc"><a href="https://px.a8.net/svt/ejp?a8mat=4BGCF1+E5N2LU+NA2+5YJRL" rel="nofollow noopener noreferrer" target="_blank">
+<img border="0" width="468" height="60" alt="" src="https://www24.a8.net/svt/bgt?aid=261103069856&wid=001&eno=01&mid=s00000003017001001000&mc=1"></a>
+<img border="0" width="1" height="1" src="https://www18.a8.net/0.gif?a8mat=4BGCF1+E5N2LU+NA2+5YJRL" alt=""></div>
+              <div class="ad-sp"><a href="https://px.a8.net/svt/ejp?a8mat=4BGCF1+E5N2LU+NA2+669JL" rel="nofollow noopener noreferrer" target="_blank">
+<img border="0" width="320" height="50" alt="" src="https://www27.a8.net/svt/bgt?aid=261103069856&wid=001&eno=01&mid=s00000003017001037000&mc=1"></a>
+<img border="0" width="1" height="1" src="https://www14.a8.net/0.gif?a8mat=4BGCF1+E5N2LU+NA2+669JL" alt=""></div>
+            </div>
           </div>
           <div class="ad-dots" role="tablist" aria-label="広告の切り替え">
             <button type="button" class="ad-dot is-active" role="tab" aria-selected="true" aria-label="広告1（ゲーマーズ）を表示" data-ad-dot="0"></button>
-            <button type="button" class="ad-dot" role="tab" aria-selected="false" aria-label="広告2（AMNIBUS）を表示" data-ad-dot="1"></button>
+            <button type="button" class="ad-dot" role="tab" aria-selected="false" aria-label="広告2（AMNIBUS（アムニバス））を表示" data-ad-dot="1"></button>
             <button type="button" class="ad-dot" role="tab" aria-selected="false" aria-label="広告3（eeo store）を表示" data-ad-dot="2"></button>
             <button type="button" class="ad-dot" role="tab" aria-selected="false" aria-label="広告4（ホビーストック）を表示" data-ad-dot="3"></button>
-            <button type="button" class="ad-dot" role="tab" aria-selected="false" aria-label="広告5（colleize）を表示" data-ad-dot="4"></button>
+            <button type="button" class="ad-dot" role="tab" aria-selected="false" aria-label="広告5（colleize（コレイズ））を表示" data-ad-dot="4"></button>
+            <button type="button" class="ad-dot" role="tab" aria-selected="false" aria-label="広告6（あみあみ）を表示" data-ad-dot="5"></button>
           </div>
         </div>
       </main>
@@ -3659,6 +3695,7 @@ else initComboWidgets();
   startTimer();
 })();
 </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 </body></html>
