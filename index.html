@@ -80,6 +80,28 @@
     .input:focus, .select:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(201,126,107,.18); }
     .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .btns { display: flex; gap: 10px; flex-wrap: wrap; }
+    /* ===== v60: 4ボタン（検索する／リセット／条件保存／条件呼出）を均等幅に =====
+       グリッドの4等分で幅を揃え、狭い画面ではフォントサイズを落として収める。 */
+    .btns.btns-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+    .btns.btns-4 > button {
+      width: 100%; min-width: 0;
+      padding: 11px 2px;
+      font-size: 13px;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+    }
+    /* タブレット（縦長）はサイドバー幅が狭いため、より小さく */
+    @media (min-width: 641px) and (max-width: 1024px) and (orientation: portrait) {
+      .btns.btns-4 > button { padding: 10px 2px; font-size: 11px; letter-spacing: -0.04em; }
+    }
+    @media (max-width: 640px) {
+      .btns.btns-4 > button { padding: 10px 2px; font-size: 11.5px; letter-spacing: -0.03em; }
+    }
+    @media (max-width: 360px) {
+      .btns.btns-4 > button { font-size: 10.5px; padding: 10px 1px; letter-spacing: -0.05em; }
+    }
     button { cursor: pointer; border: 0; border-radius: 12px; padding: 11px 14px; font-weight: 700; }
     .primary { background: var(--accent); color: var(--on-accent); border: 1px solid rgba(43,24,20,.35); }
     .secondary { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); }
@@ -1425,6 +1447,87 @@
     @media (min-width: 641px) and (max-width: 1024px) and (orientation: portrait) {
       .pagination { margin-bottom: 20px; }
     }
+
+    /* ===== v60: 確認ダイアログ（プライバシーポリシーのモーダル様式を流用） ===== */
+    .confirm-modal__window { width: min(420px, calc(100vw - 24px)); max-height: none; }
+    .confirm-modal__body { padding: 18px 18px 18px; }
+    .confirm-msg {
+      margin: 0 0 18px;
+      font-size: 14px;
+      line-height: 1.75;
+      color: var(--text);
+      font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", Meiryo, "Noto Sans CJK JP", "Noto Sans JP", system-ui, -apple-system, sans-serif;
+      white-space: pre-line;
+    }
+    /* v63: OK（または保存）を左、キャンセルを右に配置。DOM順がそのまま左右になる */
+    .confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    /* ===== v61: 条件の保存／呼出 スロット選択 ===== */
+    .slot-modal__window { width: min(520px, calc(100vw - 24px)); }
+    .slot-modal__body { padding: 16px 18px 18px; }
+    .slot-lead { margin: 0 0 12px; font-size: 12.5px; color: var(--muted); line-height: 1.7; }
+    .slot-list { display: grid; gap: 8px; max-height: 56vh; overflow-y: auto; padding-right: 2px; }
+    .slot-row { display: flex; gap: 8px; align-items: stretch; }
+    .slot-pick {
+      flex: 1 1 auto; min-width: 0; display: grid; gap: 3px; text-align: left;
+      padding: 10px 12px; border-radius: 8px; cursor: pointer;
+      border: 1px solid var(--line); background: var(--panel-2); color: var(--text);
+      font-family: inherit; transition: border-color .15s ease, background .15s ease;
+    }
+    .slot-pick:hover:not(:disabled),
+    .slot-pick:focus-visible { border-color: var(--accent); background: rgba(201,126,107,.10); outline: none; }
+    .slot-pick:disabled { opacity: .45; cursor: default; }
+    .slot-head { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+    .slot-idx { flex: 0 0 auto; font-size: 11px; color: var(--muted); }
+    .slot-name { font-size: 13px; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* ===== v62: スロット名の変更ボタン／名前入力ダイアログ ===== */
+    .slot-rename {
+      flex: 0 0 auto; width: 34px; padding: 0; border-radius: 8px; cursor: pointer;
+      border: 1px solid var(--line); background: var(--panel-2); color: var(--muted);
+      font-family: inherit; font-size: 13px; line-height: 1;
+    }
+    .slot-rename:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); background: rgba(201,126,107,.10); }
+    .slot-rename:disabled { opacity: .35; cursor: default; }
+    .name-modal__window { width: min(420px, calc(100vw - 24px)); }
+    .name-modal__body { padding: 16px 18px 18px; }
+    .name-input { width: 100%; box-sizing: border-box; font-size: 14px; }
+    .name-hint { margin: 8px 0 16px; font-size: 12px; color: var(--muted); line-height: 1.65; }
+    @media (max-width: 640px) {
+      .name-modal__window { width: calc(100vw - 20px); }
+      .name-input { font-size: 16px; }  /* iOSの自動ズーム回避 */
+    }
+    .slot-meta { font-size: 12px; color: var(--muted); line-height: 1.55; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .slot-meta.is-empty { font-style: normal; }
+    .slot-del {
+      flex: 0 0 auto; width: 40px; padding: 0; border-radius: 8px; cursor: pointer;
+      border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); font-family: inherit; font-size: 13px;
+    }
+    .slot-del:hover { color: var(--danger-ink); border-color: var(--danger-line); background: var(--danger-bg); }
+    .slot-del:disabled { opacity: .35; cursor: default; }
+    .slot-modal__foot { margin-top: 14px; }
+    .slot-modal__foot > button { width: 100%; padding: 11px 10px; font-size: 14px; }
+    @media (max-width: 640px) {
+      .slot-modal__window { width: calc(100vw - 20px); }
+      .slot-lead { font-size: 12px; }
+      .slot-meta { font-size: 11.5px; }
+      .slot-modal__foot > button { font-size: 13.5px; }
+    }
+    /* 保存完了などの簡易通知 */
+    .cond-toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 12px);
+      z-index: 400; padding: 10px 16px; border-radius: 8px;
+      background: rgba(20,22,26,.95); border: 1px solid var(--line); color: var(--text);
+      font-size: 13px; line-height: 1.5; box-shadow: 0 8px 24px rgba(0,0,0,.45);
+      opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease;
+      max-width: calc(100vw - 32px); text-align: center;
+    }
+    .cond-toast.is-show { opacity: 1; transform: translate(-50%, 0); }
+
+    .confirm-actions > button { width: 100%; padding: 11px 10px; font-size: 14px; }
+    @media (max-width: 640px) {
+      .confirm-modal__window { width: calc(100vw - 20px); }
+      .confirm-msg { font-size: 13.5px; }
+      .confirm-actions > button { font-size: 13.5px; }
+    }
 </style>
 </head>
 <body>
@@ -1446,9 +1549,11 @@
         <div class="sec">
           <label class="label" for="search">フリーワード検索</label>
           <div class="search-wrap"><input class="input" id="search" autocomplete="off" placeholder="作品名 / キーワード / 制作会社 / 監督 / 音楽 など"><div id="suggest-pop" role="listbox" aria-label="サジェスト候補"></div></div>
-          <div class="btns" style="margin-top:10px;">
+          <div class="btns btns-4" style="margin-top:10px;">
             <button class="primary js-apply" type="button">検索する</button>
             <button class="secondary js-reset" type="button">リセット</button>
+            <button class="secondary js-save-cond" type="button">条件保存</button>
+            <button class="secondary js-load-cond" type="button">条件呼出</button>
           </div>
           <div class="hint" style="margin-top:8px;">スペース区切りでAND検索できます。「主題歌」「出演」「キーワード」も検索対象ですが、検索結果一覧には表示されません。</div>
           
@@ -1522,9 +1627,11 @@
           </div>
           <div class="status-count" id="statusCount">気になる 0件 / 視聴中 0件 / 視聴済 0件 / 視聴止 0件</div>
         </div>
-        <div class="sec btns">
+        <div class="sec btns btns-4">
           <button class="primary" id="apply">検索する</button>
           <button class="secondary" id="reset">リセット</button>
+          <button class="secondary js-save-cond" type="button">条件保存</button>
+          <button class="secondary js-load-cond" type="button">条件呼出</button>
         </div>
         <div class="sec">
           <button class="acc-toggle" id="advToggle" type="button" aria-expanded="false" aria-controls="advancedFields">＋ 詳細条件を追加</button>
@@ -1578,9 +1685,11 @@
             </div>
             <datalist id="dl-cast"></datalist>
           </div>
-          <div class="sec btns">
+          <div class="sec btns btns-4">
             <button class="primary js-apply" type="button">検索する</button>
             <button class="secondary js-reset" type="button">リセット</button>
+            <button class="secondary js-save-cond" type="button">条件保存</button>
+            <button class="secondary js-load-cond" type="button">条件呼出</button>
           </div>
           <div class="sec">
             <div class="label">よく使う例</div>
@@ -3552,6 +3661,62 @@ else initComboWidgets();
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4bc70e2c01a94c73b74392e4234840661791215815920" integrity="sha512-L0ha0OXavK/8okipN9F8BtP84dg9DUhPERbBXzwI6dgTA55d2+yweo3pn5CSFYs45/r8md2+xvUPtTdvTNRfjA==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 
+  <!-- v61: 条件の保存／呼出 スロット選択 -->
+  <div class="policy-modal slot-modal" id="condSlotModal" role="dialog" aria-modal="true" aria-labelledby="condSlotTitle" aria-hidden="true">
+    <div class="policy-modal__overlay" id="condSlotOverlay" aria-hidden="true"></div>
+    <div class="policy-modal__window slot-modal__window" role="document">
+      <div class="policy-modal__head">
+        <h2 class="policy-modal__title" id="condSlotTitle">スロットを選択</h2>
+        <button type="button" class="policy-modal__close" id="condSlotClose" aria-label="閉じる">✕</button>
+      </div>
+      <div class="policy-modal__body slot-modal__body">
+        <p class="slot-lead" id="condSlotLead"></p>
+        <div class="slot-list" id="condSlotList"></div>
+        <div class="slot-modal__foot">
+          <button type="button" class="secondary" id="condSlotCancel">キャンセル</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- v62: スロット名の入力／変更 -->
+  <div class="policy-modal name-modal" id="condNameModal" role="dialog" aria-modal="true" aria-labelledby="condNameTitle" aria-hidden="true">
+    <div class="policy-modal__overlay" id="condNameOverlay" aria-hidden="true"></div>
+    <div class="policy-modal__window name-modal__window" role="document">
+      <div class="policy-modal__head">
+        <h2 class="policy-modal__title" id="condNameTitle">スロット名</h2>
+        <button type="button" class="policy-modal__close" id="condNameClose" aria-label="閉じる">✕</button>
+      </div>
+      <div class="policy-modal__body name-modal__body">
+        <p class="slot-lead" id="condNameLead"></p>
+        <input type="text" class="input name-input" id="condNameInput" maxlength="20" autocomplete="off" placeholder="例: 京アニ 2010年代">
+        <p class="name-hint" id="condNameHint"></p>
+        <div class="confirm-actions">
+          <button type="button" class="primary" id="condNameOk">保存</button>
+          <button type="button" class="secondary" id="condNameCancel">キャンセル</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="cond-toast" id="condToast" role="status" aria-live="polite"></div>
+
+  <!-- v60: 確認ダイアログ（検索条件の保存・呼出） -->
+  <div class="policy-modal confirm-modal" id="condConfirm" role="dialog" aria-modal="true" aria-labelledby="condConfirmTitle" aria-hidden="true">
+    <div class="policy-modal__overlay" id="condConfirmOverlay" aria-hidden="true"></div>
+    <div class="policy-modal__window confirm-modal__window" role="document">
+      <div class="policy-modal__head">
+        <h2 class="policy-modal__title" id="condConfirmTitle">確認</h2>
+        <button type="button" class="policy-modal__close" id="condConfirmClose" aria-label="閉じる">✕</button>
+      </div>
+      <div class="policy-modal__body confirm-modal__body">
+        <p class="confirm-msg" id="condConfirmMsg"></p>
+        <div class="confirm-actions">
+          <button type="button" class="primary" id="condConfirmOk">OK</button>
+          <button type="button" class="secondary" id="condConfirmCancel">キャンセル</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- プライバシーポリシー モーダル -->
   <div class="policy-modal" id="policyModal" role="dialog" aria-modal="true" aria-labelledby="policyModalTitle" aria-hidden="true">
     <div class="policy-modal__overlay" id="policyOverlay" aria-hidden="true"></div>
@@ -3697,5 +3862,415 @@ else initComboWidgets();
 </script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
+
+<script>
+/* ===== v61: 検索条件の保存／呼出（複数スロット対応） =====
+   - ツールバーのボタンは増やさない。「条件保存」「条件呼出」を押したあと、
+     モーダル内でスロット1〜5を選ぶ方式。
+   - 保存先は localStorage の animeSearchCond_v2（{slots:{"1":..., "2":...}}）。
+     旧バージョンの animeSearchCond_v1 は初回アクセス時にスロット1へ自動移行。
+   - ページ読み込み時に検索バーへは一切復元しない（＝開き直すと初期状態）。 */
+(function initSearchConditionStore() {
+  const KEY_V2 = 'animeSearchCond_v2';
+  const KEY_V1 = 'animeSearchCond_v1';
+  const SLOT_COUNT = 5;
+  const TEXT_FIELDS = ['search', 'company', 'director', 'writer', 'music', 'theme_song', 'cast',
+                       'episodesMin', 'episodesMax', 'yearMin', 'yearMax', 'genre'];
+  const byId = id => document.getElementById(id);
+
+  /* ---------- 収集・復元 ---------- */
+  function collectCondition() {
+    const data = { version: 2, savedAt: new Date().toISOString(), fields: {}, kinds: [], tags: [] };
+    TEXT_FIELDS.forEach(id => {
+      const el = byId(id);
+      data.fields[id] = el ? String(el.value == null ? '' : el.value) : '';
+    });
+    data.kinds = Array.from(document.querySelectorAll('#kindChecks .kind-cb'))
+      .filter(cb => cb.checked).map(cb => String(cb.value));
+    data.tags = (state && Array.isArray(state.selectedTags)) ? state.selectedTags.slice() : [];
+    return data;
+  }
+
+  function restoreCondition(data) {
+    if (!data || typeof data !== 'object') return false;
+    const fields = data.fields && typeof data.fields === 'object' ? data.fields : {};
+    TEXT_FIELDS.forEach(id => {
+      const el = byId(id);
+      if (el) el.value = fields[id] == null ? '' : String(fields[id]);
+    });
+    const kinds = Array.isArray(data.kinds) ? data.kinds.map(String) : null;
+    document.querySelectorAll('#kindChecks .kind-cb').forEach(cb => {
+      cb.checked = kinds ? kinds.indexOf(String(cb.value)) !== -1 : true;
+    });
+    state.selectedTags = Array.isArray(data.tags) ? data.tags.map(String) : [];
+    if (typeof renderTagFilters === 'function') renderTagFilters();
+    if (typeof renderAllFieldSuggestions === 'function') renderAllFieldSuggestions();
+    if (typeof renderSuggestions === 'function') renderSuggestions(byId('search') ? byId('search').value : '');
+    if (typeof applyFilters === 'function') applyFilters();
+    return true;
+  }
+
+  /* ---------- ストレージ ---------- */
+  function writeStore(store) {
+    try { localStorage.setItem(KEY_V2, JSON.stringify(store)); } catch (error) {}
+  }
+  function readStore() {
+    let store = null;
+    try {
+      const raw = localStorage.getItem(KEY_V2);
+      if (raw) store = JSON.parse(raw);
+    } catch (error) { store = null; }
+    if (!store || typeof store !== 'object' || !store.slots || typeof store.slots !== 'object') {
+      store = { version: 2, slots: {} };
+    }
+    // 旧・単一スロット版（V60の animeSearchCond_v1）からの移行は「初回の1度だけ」。
+    // v63: 旧データを残したままだと、スロット1を削除しても readStore() のたびに
+    //       復元されてしまい ✕ 削除が効かない。移行後は必ず旧キーを消し、
+    //       移行済みフラグ（migratedV1）も保存して再移行しないようにする。
+    if (!store.migratedV1) {
+      try {
+        const old = localStorage.getItem(KEY_V1);
+        if (old) {
+          const parsed = JSON.parse(old);
+          if (parsed && parsed.fields) {
+            // スロット1が空のときだけ中身を引き継ぐ（既存のV62データを壊さない）
+            if (!store.slots['1']) {
+              store.slots['1'] = parsed;
+              store.version = 2;
+              store.migratedV1 = true;
+              writeStore(store);
+            }
+          }
+          // 中身があっても無くても、旧キーは移行完了として削除する
+          try { localStorage.removeItem(KEY_V1); } catch (error) {}
+        }
+      } catch (error) {}
+    }
+    return store;
+  }
+  /* v62: スロット名（任意・20文字まで）。未設定なら「スロットN」で表示する。
+     保存済みの旧データに name が無くてもそのまま読める（空文字扱い）。 */
+  const NAME_MAX = 20;
+  function normalizeName(value) {
+    return String(value == null ? '' : value).replace(/[\r\n\t]/g, ' ').trim().slice(0, NAME_MAX);
+  }
+  function slotLabel(no, cond) {
+    const n = (cond && cond.name) ? normalizeName(cond.name) : '';
+    return n || ('スロット' + no);
+  }
+  function saveToSlot(no, cond, name) {
+    const store = readStore();
+    const prev = store.slots[String(no)] || {};
+    cond.name = (name === undefined || name === null) ? (prev.name || '') : normalizeName(name);
+    store.version = 2;
+    store.slots[String(no)] = cond;
+    writeStore(store);
+  }
+  function renameSlot(no, name) {
+    const store = readStore();
+    const cond = store.slots[String(no)];
+    if (!cond) return false;
+    cond.name = normalizeName(name);
+    writeStore(store);
+    return true;
+  }
+  function clearSlot(no) {
+    const store = readStore();
+    delete store.slots[String(no)];
+    writeStore(store);
+  }
+
+  /* ---------- 表示用サマリ ---------- */
+  function fmtDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    const p = n => String(n).padStart(2, '0');
+    return d.getFullYear() + '/' + p(d.getMonth() + 1) + '/' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+  function summarize(cond) {
+    if (!cond || !cond.fields) return '条件なし（空欄）';
+    const f = cond.fields;
+    const parts = [];
+    const kv = (label, v) => { if (v && String(v).trim() !== '') parts.push(label + String(v).trim()); };
+    kv('', f.search);
+    kv('制作:', f.company);
+    kv('監督:', f.director);
+    kv('脚本:', f.writer);
+    kv('音楽:', f.music);
+    kv('主題歌:', f.theme_song);
+    kv('出演:', f.cast);
+    kv('ジャンル:', f.genre);
+    if (f.episodesMin || f.episodesMax) parts.push('話数:' + (f.episodesMin || '') + '〜' + (f.episodesMax || ''));
+    if (f.yearMin || f.yearMax) parts.push('年:' + (f.yearMin || '') + '〜' + (f.yearMax || ''));
+    if (Array.isArray(cond.tags) && cond.tags.length) parts.push('タグ' + cond.tags.length + '件');
+    const kinds = Array.isArray(cond.kinds) ? cond.kinds : [];
+    if (kinds.length && kinds.length < 4) parts.push('種別:' + kinds.join('/'));
+    return parts.length ? parts.join(' ・ ') : '条件なし（空欄）';
+  }
+
+  /* ---------- 汎用トースト ---------- */
+  const toast = byId('condToast');
+  let toastTimer = null;
+  function showToast(text) {
+    if (!toast) return;
+    toast.textContent = text;
+    toast.classList.add('is-show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('is-show'), 2000);
+  }
+
+  /* ---------- はい／いいえダイアログ（v60の確認モーダルを流用） ---------- */
+  const modal = byId('condConfirm');
+  const msgEl = byId('condConfirmMsg');
+  const overlay = byId('condConfirmOverlay');
+  let pendingOk = null;
+
+  function openConfirm(message, onOk) {
+    if (!modal) { if (window.confirm(message)) onOk(); return; }
+    pendingOk = onOk;
+    if (msgEl) msgEl.textContent = message;
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('is-modal-open');
+    const okBtn = byId('condConfirmOk');
+    if (okBtn) { try { okBtn.focus(); } catch (e) {} }
+  }
+  function closeConfirm() {
+    if (!modal) return;
+    pendingOk = null;
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    if (!isSlotOpen()) document.body.classList.remove('is-modal-open');
+  }
+  function isSlotOpen() { return !!(slotModal && slotModal.classList.contains('is-open')); }
+  if (modal) {
+    if (overlay) overlay.addEventListener('click', closeConfirm);
+    const closeBtn = byId('condConfirmClose');
+    if (closeBtn) closeBtn.addEventListener('click', closeConfirm);
+    const cancelBtn = byId('condConfirmCancel');
+    if (cancelBtn) cancelBtn.addEventListener('click', closeConfirm);
+    const okBtn = byId('condConfirmOk');
+    if (okBtn) okBtn.addEventListener('click', function () {
+      const fn = pendingOk;
+      closeConfirm();
+      if (typeof fn === 'function') fn();
+    });
+    const win = modal.querySelector('.policy-modal__window');
+    if (win) win.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+    modal.addEventListener('mousedown', function (e) { if (e.target === modal) closeConfirm(); });
+  }
+
+  /* ---------- スロット選択モーダル ---------- */
+  const slotModal = byId('condSlotModal');
+  const slotList = byId('condSlotList');
+  const slotLead = byId('condSlotLead');
+  const slotTitle = byId('condSlotTitle');
+  const slotOverlay = byId('condSlotOverlay');
+  let slotMode = 'save';
+
+  function closeSlot() {
+    if (!slotModal) return;
+    slotModal.classList.remove('is-open');
+    slotModal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('is-modal-open');
+  }
+  function openSlot(mode) {
+    if (!slotModal) return;
+    slotMode = mode;
+    if (slotTitle) slotTitle.textContent = mode === 'save' ? '保存先のスロットを選択' : '呼び出すスロットを選択';
+    if (slotLead) {
+      slotLead.textContent = mode === 'save'
+        ? '保存先を選んでください。保存したあとに名前を付けられます（任意・スロットは5つ）。'
+        : '呼び出すスロットを選んでください。空のスロットは選択できません。';
+    }
+    renderSlots();
+    slotModal.classList.add('is-open');
+    slotModal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('is-modal-open');
+  }
+  function renderSlots() {
+    if (!slotList) return;
+    const store = readStore();
+    let html = '';
+    for (let i = 1; i <= SLOT_COUNT; i++) {
+      const cond = store.slots[String(i)];
+      const empty = !cond;
+      const meta = empty ? '空き' : (summarize(cond) + '　' + fmtDate(cond.savedAt));
+      const disabled = (slotMode === 'load' && empty) ? ' disabled' : '';
+      const named = !empty && !!normalizeName(cond.name);
+      const label = empty ? ('スロット' + i) : slotLabel(i, cond);
+      const head = named
+        ? '<span class="slot-head"><span class="slot-idx">スロット' + i + '</span><span class="slot-name">' + escapeSlot(normalizeName(cond.name)) + '</span></span>'
+        : '<span class="slot-head"><span class="slot-name">' + escapeSlot(label) + '</span></span>';
+      html += '<div class="slot-row">'
+            + '<button type="button" class="slot-pick" data-slot-pick="' + i + '"' + disabled + ' aria-label="' + escapeSlot(label) + '">'
+            + head
+            + '<span class="slot-meta' + (empty ? ' is-empty' : '') + '">' + (empty ? '空き' : escapeSlot(meta)) + '</span>'
+            + '</button>'
+            + '<button type="button" class="slot-rename" data-slot-rename="' + i + '" aria-label="スロット' + i + 'の名前を変更"' + (empty ? ' disabled' : '') + '>✎</button>'
+            + '<button type="button" class="slot-del" data-slot-del="' + i + '" aria-label="スロット' + i + 'の保存内容を削除"' + (empty ? ' disabled' : '') + '>✕</button>'
+            + '</div>';
+    }
+    slotList.innerHTML = html;
+  }
+  function escapeSlot(str) {
+    return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+  }
+
+  /* ---------- スロット名の入力／変更ダイアログ ---------- */
+  const nameModal = byId('condNameModal');
+  const nameInput = byId('condNameInput');
+  const nameLead = byId('condNameLead');
+  const nameHint = byId('condNameHint');
+  const nameTitle = byId('condNameTitle');
+  let nameOkHandler = null;
+
+  function isNameOpen() { return !!(nameModal && nameModal.classList.contains('is-open')); }
+  function openNameDialog(opts) {
+    const o = opts || {};
+    if (!nameModal) {
+      const v = window.prompt(o.lead || 'スロット名', o.value || '');
+      if (v !== null && typeof o.onOk === 'function') o.onOk(normalizeName(v));
+      return;
+    }
+    nameOkHandler = o.onOk || null;
+    if (nameTitle) nameTitle.textContent = o.title || 'スロット名';
+    if (nameLead) nameLead.textContent = o.lead || '';
+    if (nameHint) nameHint.textContent = o.hint || ('未入力の場合は「スロット' + (o.slotNo || 1) + '」と表示されます（' + NAME_MAX + '文字まで）。');
+    if (nameInput) nameInput.value = o.value || '';
+    nameModal.classList.add('is-open');
+    nameModal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('is-modal-open');
+    if (nameInput) { try { nameInput.focus(); nameInput.select(); } catch (e) {} }
+  }
+  function closeNameDialog() {
+    if (!nameModal) return;
+    nameOkHandler = null;
+    nameModal.classList.remove('is-open');
+    nameModal.setAttribute('aria-hidden', 'true');
+    if (!isSlotOpen() && !(modal && modal.classList.contains('is-open'))) {
+      document.body.classList.remove('is-modal-open');
+    }
+  }
+  function commitName() {
+    const fn = nameOkHandler;
+    const value = normalizeName(nameInput ? nameInput.value : '');
+    closeNameDialog();
+    if (typeof fn === 'function') fn(value);
+  }
+  if (nameModal) {
+    const no = byId('condNameOverlay');
+    if (no) no.addEventListener('click', closeNameDialog);
+    const nc = byId('condNameClose');
+    if (nc) nc.addEventListener('click', closeNameDialog);
+    const nca = byId('condNameCancel');
+    if (nca) nca.addEventListener('click', closeNameDialog);
+    const nok = byId('condNameOk');
+    if (nok) nok.addEventListener('click', commitName);
+    if (nameInput) nameInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); commitName(); }
+    });
+    const nw = nameModal.querySelector('.policy-modal__window');
+    if (nw) nw.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+    nameModal.addEventListener('mousedown', function (e) { if (e.target === nameModal) closeNameDialog(); });
+  }
+
+  if (slotModal) {
+    if (slotOverlay) slotOverlay.addEventListener('click', closeSlot);
+    const sc = byId('condSlotClose');
+    if (sc) sc.addEventListener('click', closeSlot);
+    const sca = byId('condSlotCancel');
+    if (sca) sca.addEventListener('click', closeSlot);
+    const sw = slotModal.querySelector('.policy-modal__window');
+    if (sw) sw.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+    slotModal.addEventListener('mousedown', function (e) { if (e.target === slotModal) closeSlot(); });
+
+    slotList.addEventListener('click', function (e) {
+      const del = e.target.closest('[data-slot-del]');
+      if (del && !del.disabled) {
+        const no = del.getAttribute('data-slot-del');
+        openConfirm('スロット' + no + 'に保存されている検索条件を削除しますか？', function () {
+          clearSlot(no);
+          renderSlots();
+          showToast('スロット' + no + 'を削除しました');
+        });
+        return;
+      }
+      const ren = e.target.closest('[data-slot-rename]');
+      if (ren && !ren.disabled) {
+        const no = ren.getAttribute('data-slot-rename');
+        const store = readStore();
+        const cond = store.slots[String(no)];
+        if (!cond) return;
+        openNameDialog({
+          title: 'スロット' + no + 'の名前を変更',
+          lead: '名前だけを変更します。保存されている検索条件は変わりません。',
+          slotNo: no,
+          value: cond.name || '',
+          onOk: function (name) {
+            renameSlot(no, name);
+            renderSlots();
+            showToast(name ? ('スロット' + no + 'の名前を「' + name + '」に変更しました') : ('スロット' + no + 'の名前を削除しました'));
+          }
+        });
+        return;
+      }
+      const pick = e.target.closest('[data-slot-pick]');
+      if (!pick || pick.disabled) return;
+      const no = pick.getAttribute('data-slot-pick');
+      if (slotMode === 'save') {
+        const store = readStore();
+        const occupied = !!store.slots[String(no)];
+        const proceed = function () {
+          openNameDialog({
+            title: 'スロット' + no + 'の名前',
+            lead: '保存する検索条件に名前を付けられます（任意）。',
+            slotNo: no,
+            value: occupied ? (store.slots[String(no)].name || '') : '',
+            onOk: function (name) {
+              saveToSlot(no, collectCondition(), name);
+              closeSlot();
+              showToast('スロット' + no + (name ? ('「' + name + '」') : '') + 'に保存しました');
+            }
+          });
+        };
+        if (occupied) openConfirm('スロット' + no + 'に保存されている条件を上書きしますか？', proceed);
+        else proceed();
+      } else {
+        const store = readStore();
+        const cond = store.slots[String(no)];
+        if (!cond) { showToast('スロット' + no + 'は空きです'); return; }
+        const label = slotLabel(no, cond);
+        closeSlot();
+        restoreCondition(cond);
+        showToast('「' + label + '」の条件を呼び出しました');
+      }
+    });
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape' && e.key !== 'Esc') return;
+    if (isNameOpen()) { closeNameDialog(); return; }
+    if (modal && modal.classList.contains('is-open')) { closeConfirm(); return; }
+    if (isSlotOpen()) closeSlot();
+  });
+
+  /* ---------- ボタン ---------- */
+  document.querySelectorAll('.js-save-cond').forEach(btn => {
+    btn.addEventListener('click', function () {
+      openConfirm('現在の検索条件を保存しますか？', function () { openSlot('save'); });
+    });
+  });
+  document.querySelectorAll('.js-load-cond').forEach(btn => {
+    btn.addEventListener('click', function () {
+      openConfirm('保存された検索条件を呼び出しますか？(現在の入力内容は上書きされます)', function () { openSlot('load'); });
+    });
+  });
+
+  window.__condStore = { read: readStore, save: saveToSlot, rename: renameSlot, clear: clearSlot, summarize: summarize, label: slotLabel, restore: restoreCondition };
+})();
+</script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 </body></html>
