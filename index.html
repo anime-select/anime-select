@@ -3962,24 +3962,45 @@ else initComboWidgets();
     const p = n => String(n).padStart(2, '0');
     return d.getFullYear() + '/' + p(d.getMonth() + 1) + '/' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
   }
+  /* v66: スロットの表示を検索バーの並び順に合わせる
+     フリーワード → タグ → 種別 → 話数 → 年 → ジャンル → 制作会社 → 監督 → 脚本 → 音楽 → 主題歌 → 出演
+     保存日時は renderSlots() が末尾に付ける。 */
+  const TAG_LABELS = {
+    editor_pick: '編集者オススメ',
+    series_first: '視聴スタート作',
+    one_episode: '1話完結型',
+    one_cour: '1クール完結',
+    two_cour: '2クール完結',
+    original_anime: 'オリジナルアニメ'
+  };
+  function tagLabelOf(key) {
+    const k = String(key == null ? '' : key);
+    return TAG_LABELS[k] || k;  /* 未知のタグはキーをそのまま表示（旧データ対策） */
+  }
   function summarize(cond) {
     if (!cond || !cond.fields) return '条件なし（空欄）';
     const f = cond.fields;
     const parts = [];
     const kv = (label, v) => { if (v && String(v).trim() !== '') parts.push(label + String(v).trim()); };
+    /* 1. フリーワード検索 */
     kv('', f.search);
+    /* 2. タグ（件数ではなくタグ名を / 区切りで表示） */
+    const tags = Array.isArray(cond.tags) ? cond.tags.map(tagLabelOf).filter(t => t && String(t).trim() !== '') : [];
+    if (tags.length) parts.push('タグ：' + tags.join('/'));
+    /* 3. 種別 */
+    const kinds = Array.isArray(cond.kinds) ? cond.kinds.map(String).filter(Boolean) : [];
+    if (kinds.length && kinds.length < 4) parts.push('種別:' + kinds.join('/'));
+    /* 4. 話数 / 5. 放送開始年・公開年 / 6. ジャンル */
+    if (f.episodesMin || f.episodesMax) parts.push('話数:' + (f.episodesMin || '') + '〜' + (f.episodesMax || ''));
+    if (f.yearMin || f.yearMax) parts.push('年:' + (f.yearMin || '') + '〜' + (f.yearMax || ''));
+    kv('ジャンル:', f.genre);
+    /* 7〜12. 制作会社 / 監督 / 脚本 / 音楽 / 主題歌 / 出演 */
     kv('制作:', f.company);
     kv('監督:', f.director);
     kv('脚本:', f.writer);
     kv('音楽:', f.music);
     kv('主題歌:', f.theme_song);
     kv('出演:', f.cast);
-    kv('ジャンル:', f.genre);
-    if (f.episodesMin || f.episodesMax) parts.push('話数:' + (f.episodesMin || '') + '〜' + (f.episodesMax || ''));
-    if (f.yearMin || f.yearMax) parts.push('年:' + (f.yearMin || '') + '〜' + (f.yearMax || ''));
-    if (Array.isArray(cond.tags) && cond.tags.length) parts.push('タグ' + cond.tags.length + '件');
-    const kinds = Array.isArray(cond.kinds) ? cond.kinds : [];
-    if (kinds.length && kinds.length < 4) parts.push('種別:' + kinds.join('/'));
     return parts.length ? parts.join(' ・ ') : '条件なし（空欄）';
   }
 
