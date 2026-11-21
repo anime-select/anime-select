@@ -2458,14 +2458,46 @@ function buildGenreOptions() {
   });
 }
 
+// ===== v71: 作品名の「読み」を五十音順のキーにする =====
+// カタカナはひらがなへ寄せ、空白（全角含む）と長音「ー」は比較時に無視する。
+// 「ー」を残すと 'らぶらいぶ' と 'らぶらいぶ' 系の並びが不安定になるため除去する。
+const KANA_COLLATOR = new Intl.Collator('ja', { numeric: true, sensitivity: 'base' });
+function toHiragana(src) {
+  const str = String(src == null ? '' : src);
+  let out = '';
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i);
+    if (c >= 0x30A1 && c <= 0x30F6) out += String.fromCharCode(c - 0x60);      // ァ..ヶ → ぁ..ゖ
+    else if (c === 0x30FD) out += '\u309D';                                    // ヽ
+    else if (c === 0x30FE) out += '\u309E';                                    // ヾ
+    else out += str[i];
+  }
+  return out;
+}
+function kanaSortKey(item) {
+  const raw = (item && item.reading) ? item.reading : (item && item.title) || '';
+  return toHiragana(raw)
+    .normalize('NFKC')
+    .replace(/[\s\u3000]+/g, '')
+    .replace(/[\u30FC\u2015\u2014\u2212]/g, '')
+    .toLowerCase();
+}
+// 同一学年内は「読み」の五十音順。読みが同一なら作品名で決着させる。
+function compareByKana(a, b) {
+  const d = KANA_COLLATOR.compare(kanaSortKey(a), kanaSortKey(b));
+  if (d !== 0) return d;
+  return KANA_COLLATOR.compare(String(a.title || ''), String(b.title || ''));
+}
+
 function sortRows(rows, sortKey) {
   const arr = [...rows];
   arr.sort((a,b) => {
-    if (sortKey === 'year_asc') return (Number(a.year)||0) - (Number(b.year)||0) || String(a.title).localeCompare(String(b.title),'ja');
+    if (sortKey === 'year_asc') return (Number(a.year)||0) - (Number(b.year)||0) || compareByKana(a, b);
     if (sortKey === 'title_asc') return String(a.title).localeCompare(String(b.title),'ja');
-    if (sortKey === 'reading_asc') return String(a.reading || a.title).localeCompare(String(b.reading || b.title),'ja');
-    if (sortKey === 'episodes_desc') return (Number(b.episodes)||0) - (Number(a.episodes)||0) || (Number(b.year)||0) - (Number(a.year)||0);
-    return (Number(b.year)||0) - (Number(a.year)||0) || String(a.title).localeCompare(String(b.title),'ja');
+    if (sortKey === 'reading_asc') return compareByKana(a, b);
+    // v72: 話数 → 年（新しい順）→ 作品名の五十音順（読み）で決着させる
+    if (sortKey === 'episodes_desc') return (Number(b.episodes)||0) - (Number(a.episodes)||0) || (Number(b.year)||0) - (Number(a.year)||0) || compareByKana(a, b);
+    return (Number(b.year)||0) - (Number(a.year)||0) || compareByKana(a, b);
   });
   return arr;
 }
@@ -4359,6 +4391,7 @@ else initComboWidgets();
   window.__condStore = { read: readStore, save: saveToSlot, rename: renameSlot, clear: clearSlot, summarize: summarize, label: slotLabel, restore: restoreCondition };
 })();
 </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 </body></html>
