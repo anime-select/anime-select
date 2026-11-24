@@ -1556,6 +1556,11 @@
       border: 1px solid rgba(255,255,255,.13);
     }
     .confirm-actions > button.quiet-dark:hover { background: rgba(255,255,255,.10); color: #d9dfe7; }
+
+    /* ===== v74: タブレット（縦長）のみ「ジャンル（例:…）」ラベルを12pxに ＝ 長い例示で2行化しても窮屈に見えないように ===== */
+    @media (min-width: 641px) and (max-width: 1024px) and (orientation: portrait) {
+      label[for="genre"].label { font-size: 12px; }
+    }
 </style>
 </head>
 <body>
@@ -1616,7 +1621,7 @@
           </div>
         </div>
         <div class="sec">
-          <label class="label" for="genre">ジャンル</label>
+          <label class="label" for="genre">ジャンル（例:「学園」「The少年マンガ」）</label>
           <div class="combo"><input class="input combo-input" id="genre" type="text" autocomplete="off" placeholder="すべて" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="genreList" aria-label="ジャンル"><ul class="combo-list" id="genreList" role="listbox" aria-label="ジャンルの候補" hidden></ul></div>
         </div>
         <div class="sec grid2">
@@ -4391,6 +4396,7 @@ else initComboWidgets();
   window.__condStore = { read: readStore, save: saveToSlot, rename: renameSlot, clear: clearSlot, summarize: summarize, label: slotLabel, restore: restoreCondition };
 })();
 </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
