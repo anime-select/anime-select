@@ -1557,9 +1557,36 @@
     }
     .confirm-actions > button.quiet-dark:hover { background: rgba(255,255,255,.10); color: #d9dfe7; }
 
-    /* ===== v74: タブレット（縦長）のみ「ジャンル（例:…）」ラベルを12pxに ＝ 長い例示で2行化しても窮屈に見えないように ===== */
-    @media (min-width: 641px) and (max-width: 1024px) and (orientation: portrait) {
-      label[for="genre"].label { font-size: 12px; }
+
+    /* ===== v75: ツールチップ（ジャンル／視聴スタート作 共通部品） ===== */
+    .label-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+    .label-row > .label { margin-bottom: 0; }
+    .tag-wrap { display: inline-flex; align-items: center; gap: 4px; }
+    .tag-wrap > .tag-btn { flex: 0 0 auto; }
+    .tip-btn {
+      flex: 0 0 auto; width: 20px; height: 20px; min-width: 20px; min-height: 20px;
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 0; border-radius: 50%; cursor: pointer;
+      background: var(--panel-2); border: 1px solid var(--line); color: var(--muted);
+      font-size: 11px; font-weight: 700; line-height: 1;
+      font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", Meiryo, "Noto Sans CJK JP", "Noto Sans JP", system-ui, -apple-system, sans-serif;
+    }
+    .tip-btn:hover, .tip-btn:focus-visible, .tip-btn.is-open { border-color: var(--accent); color: var(--accent); outline: none; }
+    .tip-pop {
+      position: fixed; z-index: 900; left: 0; top: 0;
+      display: none; width: min(320px, calc(100vw - 24px));
+      max-height: calc(100vh - 24px); overflow-y: auto;
+      padding: 12px 14px; border-radius: 10px;
+      background: rgba(20,22,26,.98); border: 1px solid var(--line);
+      color: var(--text); font-size: 12.5px; line-height: 1.75;
+      box-shadow: 0 12px 32px rgba(0,0,0,.5);
+      white-space: pre-line; overflow-wrap: anywhere; word-break: break-word;
+      font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", Meiryo, "Noto Sans CJK JP", "Noto Sans JP", system-ui, -apple-system, sans-serif;
+    }
+    .tip-pop.is-open { display: block; }
+    @media (max-width: 640px) {
+      .tip-pop { font-size: 12px; padding: 11px 12px; }
+      .tip-btn { width: 22px; height: 22px; min-width: 22px; min-height: 22px; }
     }
 </style>
 </head>
@@ -1621,7 +1648,7 @@
           </div>
         </div>
         <div class="sec">
-          <label class="label" for="genre">ジャンル（例:「学園」「The少年マンガ」）</label>
+          <div class="label-row"><label class="label" for="genre">ジャンル</label><button type="button" class="tip-btn" data-tip="genre" aria-label="ジャンル検索の使い方を表示" aria-expanded="false" aria-controls="tipPop">?</button></div>
           <div class="combo"><input class="input combo-input" id="genre" type="text" autocomplete="off" placeholder="すべて" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="genreList" aria-label="ジャンル"><ul class="combo-list" id="genreList" role="listbox" aria-label="ジャンルの候補" hidden></ul></div>
         </div>
         <div class="sec grid2">
@@ -1870,7 +1897,7 @@
     </div>
 
     <div class="footer">
-      <div class="footer-line1">最終更新日: 2026-11-25・作品数 526件</div>
+      <div class="footer-line1">最終更新日: 2026-11-26・作品数 526件</div>
       <div class="footer-links">
         <div class="footer-links__side footer-links__side--left">
           <button type="button" class="footer-link" id="policyOpen" aria-haspopup="dialog" aria-controls="policyModal">プライバシーポリシー</button>
@@ -2277,7 +2304,7 @@ document.addEventListener('mousedown', (e) => {
   }
 });
 
-const TAG_DEFS = [{"key": "editor_pick", "label": "編集者オススメ"}, {"key": "series_first", "label": "視聴スタート作"}, {"key": "one_episode", "label": "1話完結型"}, {"key": "one_cour", "label": "1クール完結"}, {"key": "two_cour", "label": "2クール完結"}, {"key": "original_anime", "label": "オリジナルアニメ"}];
+const TAG_DEFS = [{"key": "editor_pick", "label": "編集者オススメ"}, {"key": "series_first", "label": "視聴スタート作"}, {"key": "original_anime", "label": "オリジナルアニメ"}, {"key": "one_episode", "label": "1話完結型"}, {"key": "one_cour", "label": "1クール完結"}, {"key": "two_cour", "label": "2クール完結"}];
 
 const STATUS_STORAGE_KEY = 'animeUserState_v1';
 
@@ -2383,9 +2410,14 @@ function fillStats() {
 }
 
 function renderTagFilters() {
+  if (window.__tip) window.__tip.hide();
   $('tagFilters').innerHTML = TAG_DEFS.map(tag => {
     const active = state.selectedTags.includes(tag.key) ? 'active' : '';
-    return `<button type="button" class="tag-btn ${active}" data-tag="${tag.key}">${escapeHtml(tag.label)}</button>`;
+    /* v75: 「視聴スタート作」の右にツールチップ（タグ本体とは別ボタンなので絞り込みは切り替わらない） */
+    const tip = (tag.key === 'series_first')
+      ? `<button type="button" class="tip-btn" data-tip="series_first" aria-label="「視聴スタート作」の説明を表示" aria-expanded="false" aria-controls="tipPop">?</button>`
+      : '';
+    return `<span class="tag-wrap"><button type="button" class="tag-btn ${active}" data-tag="${tag.key}">${escapeHtml(tag.label)}</button>${tip}</span>`;
   }).join('');
 
   document.querySelectorAll('#tagFilters .tag-btn').forEach(btn => {
@@ -4391,6 +4423,72 @@ else initComboWidgets();
       e.stopPropagation();
       closeClear();
     }, true);
+  })();
+
+  /* ---------- v75: ツールチップ（ジャンル／視聴スタート作） ---------- */
+  (function () {
+    const TIP_TEXT = {
+      genre: '★ジャンル検索の使い方\n1.リストからの選択 2.文字入力のどちらにも対応しています。\n「恋愛」「SF」などの定番や「The少年マンガ」「自然・田舎」といった独自ジャンルも選択できます。',
+      series_first: '「視聴スタート作」とは\n単発作品、または続編ではなく1期から見始められる作品です。'
+    };
+    const pop = document.createElement('div');
+    pop.className = 'tip-pop';
+    pop.id = 'tipPop';
+    pop.setAttribute('role', 'tooltip');
+    document.body.appendChild(pop);
+    let currentBtn = null;
+
+    function place() {
+      if (!currentBtn || !pop.classList.contains('is-open')) return;
+      const r = currentBtn.getBoundingClientRect();
+      const w = pop.offsetWidth, h = pop.offsetHeight;
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, vw - w - 8));
+      let top = r.bottom + 8;
+      if (top + h > vh - 8) {
+        const above = r.top - 8 - h;
+        top = above >= 8 ? above : r.top - 8 - h;
+      }
+      /* 画面外のボタンから開いた場合も、必ずビューポート内に収める */
+      top = Math.max(8, Math.min(top, vh - h - 8));
+      pop.style.left = Math.round(left) + 'px';
+      pop.style.top = Math.round(top) + 'px';
+    }
+    function hideTip() {
+      if (!pop.classList.contains('is-open') && !currentBtn) return;
+      pop.classList.remove('is-open');
+      if (currentBtn) { currentBtn.classList.remove('is-open'); currentBtn.setAttribute('aria-expanded', 'false'); currentBtn = null; }
+    }
+    function showTip(btn) {
+      if (currentBtn === btn) { hideTip(); return; }
+      hideTip();
+      currentBtn = btn;
+      pop.textContent = TIP_TEXT[btn.dataset.tip] || '';
+      pop.classList.add('is-open');
+      btn.classList.add('is-open');
+      btn.setAttribute('aria-expanded', 'true');
+      place();
+    }
+    window.__tip = { hide: hideTip };
+
+    document.addEventListener('click', function (e) {
+      const btn = e.target && e.target.closest ? e.target.closest('.tip-btn') : null;
+      if (btn) {
+        e.preventDefault();
+        e.stopPropagation();
+        showTip(btn);
+        return;
+      }
+      if (!pop.contains(e.target)) hideTip();
+    }, true);
+    document.addEventListener('keydown', function (e) {
+      if ((e.key === 'Escape' || e.key === 'Esc') && pop.classList.contains('is-open')) {
+        e.stopPropagation();
+        hideTip();
+      }
+    }, true);
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', function () { if (currentBtn) place(); }, true);
   })();
 
   window.__condStore = { read: readStore, save: saveToSlot, rename: renameSlot, clear: clearSlot, summarize: summarize, label: slotLabel, restore: restoreCondition };
